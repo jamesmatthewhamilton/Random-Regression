@@ -48,7 +48,7 @@ for (i in 1:n_iter) {
 rm(RandomLasso)
 
 # >>>>>>>>>>>> LOAD DATA <<<<<<<<<<<<
-setwd("~/Dropbox/MatthewHamilton/KSULasso/R/Package/Test/res/")
+setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Package/Test/res/")
 # 100 Features 50 Samples
 x = as.matrix(read.csv("qx")[,-1])
 y = as.matrix(read.csv("qy")[,-1])
@@ -58,9 +58,10 @@ y = as.matrix(read.csv("y")[,-1])
 
 # >>>>>>>>>>>> GENERAL PACKAGE TEST <<<<<<<<<<<<
 detach("package:RandomLasso", unload = TRUE)
-install.packages("~/Dropbox/MatthewHamilton/KSULasso/R/Package/RandomLasso/", repos = NULL,
+install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Package/RandomLasso/", repos = NULL,
                  type = "source")
 library(RandomLasso)
+ls("package:RandomLasso")
 
 start <- Sys.time()
 RandomLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)

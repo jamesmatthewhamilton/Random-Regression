@@ -1,17 +1,26 @@
 Package: RandomLasso
-Title: A library of Random Lasso functions.
-Version: 0.99.0
+Type: Package
+Title: A library of Random Lasso flavored functions for regression analysis.
+Version: 0.2.1
+Date: 2019-06-21
 Authors@R: c(
-  person("James", "Hamilton", email="jamesmatthewhamilton@icloud.com", role="cre"), 
-  person("Mingon", "Kang", email="mkang9@kennesaw.edu", role="ctb"))
+    person("James", "Hamilton", email="jamesmatthewhamilton@icloud.com", role="cre"), 
+    person("Mingon", "Kang", email="mkang9@kennesaw.edu", role="ctb"))
 Description: Library provides an array of Random Lasso like functions with tuning parameters. Random Lasso runs with an independent and dependent input.
-License: file LICENSE Artistic-2.0
+License: Artistic-2.0
 Encoding: UTF-8
 LazyData: FALSE
 Imports:
-  glmnet
+    glmnet
 Enhances:
-  parallel,
-  sparklyr
+    parallel,
+    sparklyr
+Collate:
+    helper.time.R
+    RegressionFunctions.R
+    RandomLasso.R
+    ParallelRandomLasso.R
+    RapidRandomLasso.R
+    SteppedRandomLasso.R
 biocViews:
-  Regression
+    Regression
