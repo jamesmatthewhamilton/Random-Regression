@@ -19,6 +19,7 @@ Collate:
     helper.time.R
     RegressionFunctions.R
     RandomLasso.R
+    HiLasso.R
     ParallelRandomLasso.R
     RapidRandomLasso.R
     SteppedRandomLasso.R
