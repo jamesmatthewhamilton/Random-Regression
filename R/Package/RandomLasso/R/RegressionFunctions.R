@@ -1,34 +1,45 @@
-Lasso <- function(x, y, alpha) {
-    # Alpha 1: Lasso
-    # Alpha 0: Ridge Regression
+Lasso <- function(x, y, alpha, nfold) {
+
     lambda.min <- cv.glmnet(x, y, type.measure = "mse",
-                            nfold = 5, alpha = alpha)$lambda.min
+                            nfold = nfold, alpha = alpha)$lambda.min
     coefficients <- glmnet(x, y, lambda = lambda.min, alpha = alpha,
                            standardize = FALSE, intercept = FALSE)
-    # Coeffiecents of random sample.
+
     hat.beta <- coef(coefficients)[-1]
     return(hat.beta)
 }
 
-AdaptiveLasso <- function(x, y, importance.measure) {
-    # Alpha 1: Lasso
-    # Alpha 0: Ridge Regression
+ElasticNet <- function(x, y, nfold) {
+
+    test <- lapply(seq(0, 1, 0.1), function(ii, x,  y) {
+        cv.glmnet(x, y, type.measure = "mse", nfold = nfold, alpha = ii)
+    }, x, y)
+
+    lambda <- lapply(test, function(test) test$lambda.min)
+    cvm <- lapply(test, function(test) test$cvm[which.min(test$cvm)])
+
+    coefficients <- glmnet(x, y, standardize = FALSE, intercept = FALSE,
+                           lambda = as.numeric(lambda[which.min(cvm)]),
+                           alpha = as.numeric(seq(0, 1, 0.1)[which.min(cvm)]))
+    hat.beta <- coef(coefficients)[-1]
+    return(hat.beta)
+}
+
+AdaptiveLasso <- function(x, y, importance.measure, nfold) {
+
     lambda.min <- cv.glmnet(x, y, type.measure = "mse",
-                            nfold = 5, alpha = 1)$lambda.min
+                            nfold = nfold, alpha = 1)$lambda.min
     coefficients <- glmnet(x, y, lambda = lambda.min, alpha = 1,
                            standardize = FALSE,intercept = FALSE,
-                           penalty.factor = 1 / (importance.measure + 0.0000001))
-    # Coeffiecents of random sample.
+                           penalty.factor = (1 / (importance.measure + 1e-10)))
     hat.beta <- coef(coefficients)[-1]
     return(hat.beta)
 }
 
 RapidLasso <- function(x, y, alpha, lambda) {
-    # Alpha 1: Lasso
-    # Alpha 0: Ridge Regression
     coefficients <- glmnet(x, y, lambda = lambda, alpha = alpha,
                            standardize = FALSE, intercept = FALSE)
-    # Coeffiecents of random sample.
+
     hat.beta <- coef(lasso.results)[-1]
     return(hat.beta)
 }
