@@ -53,9 +53,9 @@ HiLasso <- function(x, y, bootstraps, alpha = 1,
         random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
 
         beta.hat <- replicate(features, 0)
-        beta.hat[random.features] <- ElasticNet(random.x.scaled,
-                                                random.y.scaled,
-                                                nfold) / standard.deviation
+        beta.hat[random.features] <- Lasso(random.x.scaled,
+                                           random.y.scaled, alpha = 0.5,
+                                           nfold) / standard.deviation
         return(beta.hat)
     }
     
@@ -108,7 +108,7 @@ HiLasso <- function(x, y, bootstraps, alpha = 1,
     rownames(reduced.beta.hat) <- colnames(x)
     colnames(reduced.beta.hat) <- "Coefficients"
     if (test) {
-        return(c(features, samples, bootstraps, as.numeric(Sys.time()) - start))
+        return(list(reduced.beta.hat, features, samples, bootstraps, as.numeric(Sys.time()) - start))
     }
     return(reduced.beta.hat)
 }
