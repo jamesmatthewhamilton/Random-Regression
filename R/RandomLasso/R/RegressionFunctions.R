@@ -30,8 +30,8 @@ AdaptiveLasso <- function(x, y, importance.measure, nfold) {
     lambda.min <- cv.glmnet(x, y, type.measure = "mse",
                             nfold = nfold, alpha = 1)$lambda.min
     coefficients <- glmnet(x, y, lambda = lambda.min, alpha = 1,
-                           standardize = FALSE,intercept = FALSE,
-                           penalty.factor = (1 / (importance.measure + 1e-10)))
+                           standardize = FALSE, intercept = FALSE,
+                           penalty.factor = (1 / abs(importance.measure)))
     hat.beta <- coef(coefficients)[-1]
     return(hat.beta)
 }
@@ -40,6 +40,6 @@ RapidLasso <- function(x, y, alpha, lambda) {
     coefficients <- glmnet(x, y, lambda = lambda, alpha = alpha,
                            standardize = FALSE, intercept = FALSE)
 
-    hat.beta <- coef(lasso.results)[-1]
+    hat.beta <- coef(coefficients)[-1]
     return(hat.beta)
 }

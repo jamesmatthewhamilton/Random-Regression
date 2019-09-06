@@ -1,10 +1,8 @@
 options(scipen = 999)
+setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/")
 
-setwd("~/Dropbox/MatthewHamilton/KSULasso/R/Package/Test/res/")
-
-
-# >>>>>>>>>>>> DOCTOR KIM'S DATA <<<<<<<<<<<<
-# load("res/sim1_sig3_our.RData")
+# >>>>>>>>>>>> DOCTOR KIM'S DATA SIMULATION<<<<<<<<<<<<
+load("res/sim1_sig3_our.RData")
 # load("res/sim2_sig3_our.RData")
 # load("res/sim3_sig3_our.RData")
 # load("res/sim4_sig3_our.RData")
@@ -48,7 +46,7 @@ for (i in 1:n_iter) {
 rm(RandomLasso)
 
 # >>>>>>>>>>>> LOAD DATA <<<<<<<<<<<<
-setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Package/Test/res/")
+setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/res/")
 # 100 Features 50 Samples
 x = as.matrix(read.csv("qx")[,-1])
 y = as.matrix(read.csv("qy")[,-1])
@@ -58,7 +56,7 @@ y = as.matrix(read.csv("y")[,-1])
 
 # >>>>>>>>>>>> GENERAL PACKAGE TEST <<<<<<<<<<<<
 detach("package:RandomLasso", unload = TRUE)
-install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Package/RandomLasso/", repos = NULL,
+install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/", repos = NULL,
                  type = "source")
 library(RandomLasso)
 ls("package:RandomLasso")
@@ -79,7 +77,7 @@ part1 <- SteppedRandomLasso(x, y, bootstraps = 300, alpha = 1)
 part2 <- SteppedRandomLasso(x, y, importance = part1, bootstraps = 300, alpha = 1)
 
 # >>>>>>>>>> PERFORMANCE TESTING <<<<<<<<<<
-setwd("~/Dropbox/MatthewHamilton/KSULasso/R/Package/Test/res/")
+setwd("~/Dropbox/MatthewHamilton/KSULasso/R/Test/res/")
 # >>>>>> Generating Huge Test Data <<<<<<
 map = list()
 for (ii in 1:20) {map[[ii]] = x}
@@ -294,10 +292,73 @@ for (ii in 1:200) {
 delist = t(sapply(test, unlist))
 write.csv(x = delist, paste("../log/RapidBootstraps", Sys.time(), ".csv", sep = ""))
 
+# >>>>>>>>>>>> ACCURACY PACKAGE TEST <<<<<<<<<<<<
+
+#RME Covariance (page 6)
+#RMSE rmse() 
+#T1 Confusion Matrix Sensitivity / Percision PPV: Seneitivity TPR: Percision
+
+rm(RandomLasso)
+detach("package:RandomLasso", unload = TRUE)
+install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/", repos = NULL,
+                 type = "source")
+library(RandomLasso)
+ls("package:RandomLasso")
+
+library("Metrics")
+
+start <- Sys.time()
+results.R <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+Sys.time() - start
+
+start <- Sys.time()
+results.H <- HiLasso(x, y, alpha = 0.5, verbose = TRUE, test = FALSE)
+Sys.time() - start
+
+results.P = c(1.5324, 1.3097, -0.1802, 0.6110, 0.4852, 0, 1.1057, 0.8117, 0.3094, -0.0302)
+
+beta.hat <- as.matrix(as.vector(results.H))
+Truth <-  as.matrix(beta0)
+
+RME.ALL <- t(Truth - beta.hat) %*% cov(Truth - beta.hat)
+RME.NONZER <- t(Truth[1:10] - beta.hat) %*% cov(Truth[1:10] - beta.hat)
 
 
+rmse(Truth, beta.hat)
+rmse(Truth[1:10], beta.hat[1:10])
+rmse(y.test, beta.hat[1:10])
+rmse(y.val, beta.hat[1:10])
 
+FindConfusion <- function(Truth, beta.hat) {
+    if (beta.hat > 0) {
+        if (Truth > 0) return("TP")
+        else return("FP")
+    }
+    else {
+        if (Truth > 0) return("FN")
+        else return("TN")
+    }
+}
 
+confusion.values <- mapply(FindConfusion, Truth, beta.hat)
+TP <- length(confusion.values[confusion.values == "TP"])
+FP <- length(confusion.values[confusion.values == "FP"])
+FN <- length(confusion.values[confusion.values == "FN"])
+TN <- length(confusion.values[confusion.values == "TN"])
+
+TPR <- TP / (TP + FN)
+PPV <- TP / (TP + FP)
+
+F1 <- 2 * (PPV * TPR) / (PPV + TPR)
+
+    
+start <- Sys.time()
+RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+Sys.time() - start
+
+PART1 <- RandomLasso2(x, y, NumOfFeatures = 100, repeat_Boostrapping = 50, Importance_weight = 1, Method = 'LASSO')
+PART2 <- RandomLasso2(x, y, NumOfFeatures = 100, repeat_Boostrapping = 50, Importance_weight = abs(PART1[,1]), Method = 'LASSO')
+PART2
 
 
 
