@@ -1,8 +1,6 @@
 options(scipen = 999)
 setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/")
 
-# library("Metrics")
-
 ITERATIONS = 9
 TESTS = 7
 
@@ -14,8 +12,8 @@ rmse.jmh = function(truth, predicted){
     sqrt(mean((truth - predicted)^2))
 }
 
-#  load("res/sim1_sig3_our.RData")
- load("res/sim2_sig3_our.RData")
+# load("res/sim1_sig3_our.RData")
+load("res/sim2_sig3_our.RData")
 # load("res/sim3_sig3_our.RData")
 # load("res/sim4_sig3_our.RData")
 
