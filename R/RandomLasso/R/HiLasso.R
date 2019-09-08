@@ -15,7 +15,7 @@
 #' RandomLasso(x, y, verbose = FALSE, bootstraps = 300)
 #'
 
-HiLasso <- function(x, y, bootstraps, alpha = 1,
+HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
                     nfold = 5, verbose = TRUE, test = FALSE) {
 
     if (test) {start = as.numeric(Sys.time())}
@@ -54,7 +54,8 @@ HiLasso <- function(x, y, bootstraps, alpha = 1,
 
         beta.hat <- replicate(features, 0)
         beta.hat[random.features] <- Lasso(random.x.scaled,
-                                           random.y.scaled, alpha = 0.5,
+                                           random.y.scaled,
+                                           alpha[1],
                                            nfold) / standard.deviation
         return(beta.hat)
     }
@@ -86,6 +87,7 @@ HiLasso <- function(x, y, bootstraps, alpha = 1,
         beta.hat <- replicate(features, 0)
         beta.hat[random.features] <- AdaptiveLasso(random.x.scaled,
                                                    random.y.scaled,
+                                                   alpha[2],
                                                    random.importance,
                                                    nfold) / standard.deviation
         return(beta.hat)

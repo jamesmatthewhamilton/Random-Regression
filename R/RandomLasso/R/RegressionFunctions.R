@@ -25,11 +25,11 @@ ElasticNet <- function(x, y, nfold) {
     return(hat.beta)
 }
 
-AdaptiveLasso <- function(x, y, importance.measure, nfold) {
+AdaptiveLasso <- function(x, y, alpha, importance.measure, nfold) {
 
     lambda.min <- cv.glmnet(x, y, type.measure = "mse",
                             nfold = nfold, alpha = 1)$lambda.min
-    coefficients <- glmnet(x, y, lambda = lambda.min, alpha = 1,
+    coefficients <- glmnet(x, y, lambda = lambda.min, alpha = alpha,
                            standardize = FALSE, intercept = FALSE,
                            penalty.factor = (1 / abs(importance.measure)))
     hat.beta <- coef(coefficients)[-1]
