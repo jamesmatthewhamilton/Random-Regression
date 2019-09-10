@@ -64,7 +64,6 @@ RapidRandomLasso <- function(x, y, bootstraps, alpha = c(1, 1), verbose = TRUE, 
 
   beta.hat <- lapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()))
   importance.measure <- abs(Reduce('+', beta.hat)) + 1e-10
-  print(importance.measure)
 
   # ------------ Step II ------------ #
 

@@ -53,8 +53,10 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
         random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
 
         beta.hat <- replicate(features, 0)
-        beta.hat[random.features] <- Lasso(random.x.scaled, random.y.scaled,
-                                           alpha[1], nfold) / standard.deviation
+        beta.hat[random.features] <- Lasso(random.x.scaled,
+                                           random.y.scaled,
+                                           alpha[1],
+                                           nfold) / standard.deviation
         return(beta.hat)
     }
 
@@ -82,8 +84,10 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
         random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
 
         beta.hat <- replicate(features, 0)
-        beta.hat[random.features] <- Lasso(random.x.scaled, random.y.scaled,
-                                           alpha[2], nfold) / standard.deviation
+        beta.hat[random.features] <- Lasso(random.x.scaled,
+                                           random.y.scaled,
+                                           alpha[2],
+                                           nfold) / standard.deviation
         return(beta.hat)
     }
 

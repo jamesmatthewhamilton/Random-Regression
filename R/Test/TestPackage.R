@@ -8,14 +8,14 @@ y = as.matrix(read.csv("qy")[,-1])
 # x = as.matrix(read.csv("x")[,-1])
 # y = as.matrix(read.csv("y")[,-1])
 
-detach("package:RandomLasso", unload = TRUE)
+# detach("package:RandomLasso", unload = TRUE)
 install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/",
                  repos = NULL, type = "source")
 library(RandomLasso)
 ls("package:RandomLasso")
 
 start <- Sys.time()
-HiLasso(x, y, alpha = 0.5, verbose = TRUE, test = FALSE)
+HiLasso(x, y, alpha = c(0.5, 0), verbose = TRUE, test = FALSE)
 Sys.time() - start
 
 start <- Sys.time()
