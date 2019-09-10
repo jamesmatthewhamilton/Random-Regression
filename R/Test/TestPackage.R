@@ -1,21 +1,22 @@
-options(scipen = 999)
-setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/res/")
+options(scipen = 999) # Ctrl-Shift-Enter
+setwd(dirname(parent.frame(2)$ofile))
+getwd()
 
 ##  100 Features 50 Samples:
-x = as.matrix(read.csv("qx")[,-1])
-y = as.matrix(read.csv("qy")[,-1])
+x = as.matrix(read.csv("res/qx")[,-1])
+y = as.matrix(read.csv("res/qy")[,-1])
 ##  1000 Features 100 Samples:
 # x = as.matrix(read.csv("x")[,-1])
 # y = as.matrix(read.csv("y")[,-1])
 
-# detach("package:RandomLasso", unload = TRUE)
-install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/",
+detach("package:RandomLasso", unload = TRUE)
+install.packages("../RandomLasso",
                  repos = NULL, type = "source")
 library(RandomLasso)
 ls("package:RandomLasso")
 
 start <- Sys.time()
-HiLasso(x, y, alpha = c(0.5, 0), verbose = TRUE, test = FALSE)
+HiLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
 Sys.time() - start
 
 start <- Sys.time()

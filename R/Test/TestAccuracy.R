@@ -1,29 +1,41 @@
-options(scipen = 999)
-setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/")
-
+options(scipen = 999) # Ctrl-Shift-Enter
+setwd(dirname(parent.frame(2)$ofile))
+getwd()
 library('Metrics')
 
 ITERATIONS = 9
-TESTS = 1
+TESTS = 14
+
+FindConfusion <- function(Truth, beta.hat) {
+  if (beta.hat != 0) {
+    if (Truth != 0) return("TP")
+    else return("FP")
+  }
+  else {
+    if (Truth != 0) return("FN")
+    else return("TN")
+  }
+}
 
 RMSE2 = function(truth, predicted){
     sqrt(mean((truth - predicted)^2))
 }
 
 # load("res/sim1_sig3_our.RData")
- load("res/sim2_sig3_our.RData")
+load("res/sim2_sig3_our.RData")
 # load("res/sim3_sig3_our.RData")
 # load("res/sim4_sig3_our.RData")
+rm(RandomLasso)
 
 coef <- list()
 coef.all <- matrix(data = 0, nrow = n_feature, ncol = TESTS)
 
 rmse <- matrix(data = 0, nrow = 9, ncol = TESTS)
 rmse2 <- matrix(data = 0, nrow = 9, ncol = TESTS)
+f1 <- matrix(data = 0, nrow = 9, ncol = TESTS)
 
-rm(RandomLasso)
 detach("package:RandomLasso", unload = TRUE)
-install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/", repos = NULL,
+install.packages("../RandomLasso/", repos = NULL,
                  type = "source")
 library(RandomLasso)
 ls("package:RandomLasso")
@@ -65,30 +77,42 @@ for (ii in 1:ITERATIONS) {
 
     ground.truth <- as.matrix(beta0)
 
-    #coef[[1]] <- Lasso(x, y, alpha = 0, nfold = 10) # Ridge Regression
-    #coef[[2]] <- Lasso(x, y, alpha = 0.5, nfold = 10) # Elastic-net
-    #coef[[3]] <- Lasso(x, y, alpha = 1, nfold = 10) # Lasso
-    #coef[[4]] <- AdaptiveLasso(x, y, importance.measure = coef[[1]], nfold = 10)
-    #coef[[5]] <- RandomLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
-    #coef[[6]] <- RandomLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
-    #coef[[7]] <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    #coef[[8]] <- RandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    coef[[1]] <- Lasso(x, y, alpha = 0, nfold = 10) # Ridge Regression
+    coef[[2]] <- Lasso(x, y, alpha = 0.5, nfold = 10) # Elastic-net
+    coef[[3]] <- Lasso(x, y, alpha = 1, nfold = 10) # Lasso
+    coef[[4]] <- AdaptiveLasso(x, y, alpha = 1, importance.measure = coef[[1]], nfold = 10)
+    coef[[5]] <- RandomLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
+    coef[[6]] <- RandomLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
+    coef[[7]] <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+    coef[[8]] <- RandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    coef[[9]] <- RandomLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
     #X#coef[[X]] <- RapidRandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
     #X#coef[[X]] <- RapidRandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
     #X#parrt1 = RandomLasso3(x,y,Importance_weight = 0,NumOfFeatures = 100, repeat_Boostrapping = 100, step2 = FALSE, Method = 'Enet')
     #X#coef[[X]] = RandomLasso3(x,y,Importance_weight = abs(parrt1[,1]),NumOfFeatures = 100, repeat_Boostrapping = 100, step2 = TRUE, Method = 'Enet')[,1]
-    #coef[[9]] <- HiLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
-    #coef[[10]] <- HiLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
-    #coef[[11]] <- HiLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    #coef[[TESTS]] <- HiLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
-    coef[[TESTS]] <- HiLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
+    coef[[10]] <- HiLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
+    coef[[11]] <- HiLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
+    coef[[12]] <- HiLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+    coef[[13]] <- HiLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
+    coef[[TESTS]] <- HiLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
 
     for (jj in 1:TESTS) {
         beta.hat <- as.matrix(as.vector(coef[[jj]]))
 
         coef.all[,jj] = coef.all[,jj] + beta.hat
-        rmse[ii,jj] <- RMSE(threshold, ground.truth, beta.hat, cov_x, y.val, x.val)[36,2]
+        rmse[ii,jj] <- RMSE(threshold, ground.truth, beta.hat, cov_x, y.val, x.val)[1,2]
         rmse2[ii,jj] <- RMSE2(ground.truth, beta.hat)
+
+        confusion.values <- mapply(FindConfusion, ground.truth, beta.hat)
+        TP <- length(confusion.values[confusion.values == "TP"])
+        FP <- length(confusion.values[confusion.values == "FP"])
+        FN <- length(confusion.values[confusion.values == "FN"])
+        TN <- length(confusion.values[confusion.values == "TN"])
+
+        TPR <- TP / (TP + FN)
+        PPV <- TP / (TP + FP)
+
+        f1[ii,jj] <- 2 * (PPV * TPR) / (PPV + TPR)
     }
 }
 
@@ -96,6 +120,6 @@ coef.all = coef.all / TESTS
 
 write.csv(x = coef.all, paste("log/Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = rmse, paste("log/RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
-write.csv(x = rmse.sel, paste("log/RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = rmse2, paste("log/RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 apply(rmse, 2, mean)
 apply(rmse.sel, 2, mean)

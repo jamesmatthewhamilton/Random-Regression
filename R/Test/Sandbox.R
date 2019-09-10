@@ -13,7 +13,7 @@ results.R <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE
 Sys.time() - start
 
 start <- Sys.time()
-results.H <- HiLasso(x, y, alpha = 0.5, verbose = TRUE, test = FALSE)
+results.H <- HiLasso(x, y, alpha = c(0.5,1), verbose = TRUE, test = FALSE)
 Sys.time() - start
 
 results.P = c(1.5324, 1.3097, -0.1802, 0.6110, 0.4852, 0, 1.1057, 0.8117, 0.3094, -0.0302)
@@ -30,15 +30,21 @@ rmse(y.test, beta.hat[1:10])
 rmse(y.val, beta.hat[1:10])
 
 FindConfusion <- function(Truth, beta.hat) {
-    if (beta.hat > 0) {
-        if (Truth > 0) return("TP")
+    if (beta.hat != 0) {
+        if (Truth != 0) return("TP")
         else return("FP")
     }
     else {
-        if (Truth > 0) return("FN")
+        if (Truth != 0) return("FN")
         else return("TN")
     }
 }
+
+test <- Confusion(Truth, beta.hat)
+TPR <- test[1]
+PPV <- test[2]
+F1 <- 2 * (PPV * TPR) / (PPV + TPR)
+F1
 
 confusion.values <- mapply(FindConfusion, Truth, beta.hat)
 TP <- length(confusion.values[confusion.values == "TP"])
@@ -50,6 +56,7 @@ TPR <- TP / (TP + FN)
 PPV <- TP / (TP + FP)
 
 F1 <- 2 * (PPV * TPR) / (PPV + TPR)
+F1
 
 start <- Sys.time()
 RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
