@@ -27,12 +27,18 @@ load("res/sim2_sig3_our.RData")
 # load("res/sim4_sig3_our.RData")
 rm(RandomLasso)
 
-coef <- list()
-coef.all <- matrix(data = 0, nrow = n_feature, ncol = TESTS)
+coef <- vector("list", TESTS)
+for (ii in 1:TESTS) {
+  coef[[ii]] <- matrix(0, nrow = n_feature, ncol = ITERATIONS)
+}
 
-rmse <- matrix(data = 0, nrow = 9, ncol = TESTS)
-rmse2 <- matrix(data = 0, nrow = 9, ncol = TESTS)
-f1 <- matrix(data = 0, nrow = 9, ncol = TESTS)
+coef.avg <- matrix(data = 0, nrow = n_feature, ncol = TESTS)
+rmse <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+rmse2 <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+f1 <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+f2 <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+dor <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+dor2 <- matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
 
 detach("package:RandomLasso", unload = TRUE)
 install.packages("../RandomLasso/", repos = NULL,
@@ -77,29 +83,31 @@ for (ii in 1:ITERATIONS) {
 
     ground.truth <- as.matrix(beta0)
 
-    coef[[1]] <- Lasso(x, y, alpha = 0, nfold = 10) # Ridge Regression
-    coef[[2]] <- Lasso(x, y, alpha = 0.5, nfold = 10) # Elastic-net
-    coef[[3]] <- Lasso(x, y, alpha = 1, nfold = 10) # Lasso
-    coef[[4]] <- AdaptiveLasso(x, y, alpha = 1, importance.measure = coef[[1]], nfold = 10)
-    coef[[5]] <- RandomLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
-    coef[[6]] <- RandomLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
-    coef[[7]] <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    coef[[8]] <- RandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
-    coef[[9]] <- RandomLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
-    #X#coef[[X]] <- RapidRandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    #X#coef[[X]] <- RapidRandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    coef[[1]][,ii] <- Lasso(x, y, alpha = 0, nfold = 10) # Ridge Regression
+    coef[[2]][,ii] <- Lasso(x, y, alpha = 0.5, nfold = 10) # Elastic-net
+    coef[[3]][,ii] <- Lasso(x, y, alpha = 1, nfold = 10) # Lasso
+    coef[[4]][,ii] <- AdaptiveLasso(x, y, alpha = 1, importance.measure = coef[[1]][,ii], nfold = 10)
+    coef[[5]][,ii] <- RandomLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
+    coef[[6]][,ii] <- RandomLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
+    coef[[7]][,ii] <- RandomLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+    coef[[8]][,ii] <- RandomLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    coef[[9]][,ii] <- RandomLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
     #X#parrt1 = RandomLasso3(x,y,Importance_weight = 0,NumOfFeatures = 100, repeat_Boostrapping = 100, step2 = FALSE, Method = 'Enet')
-    #X#coef[[X]] = RandomLasso3(x,y,Importance_weight = abs(parrt1[,1]),NumOfFeatures = 100, repeat_Boostrapping = 100, step2 = TRUE, Method = 'Enet')[,1]
-    coef[[10]] <- HiLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
-    coef[[11]] <- HiLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
-    coef[[12]] <- HiLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    coef[[13]] <- HiLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
-    coef[[TESTS]] <- HiLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    #X#coef[[X]][,ii] = RandomLasso3(x,y,Importance_weight = abs(parrt1[,1]),NumOfFeatures = 100, repeat_Boostrapping = 100, step2 = TRUE, Method = 'Enet')[,1]
+    coef[[10]][,ii] <- HiLasso(x, y, alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
+    coef[[11]][,ii] <- HiLasso(x, y, alpha = c(0, 1), verbose = TRUE, test = FALSE)
+    coef[[12]][,ii] <- HiLasso(x, y, alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
+    coef[[13]][,ii] <- HiLasso(x, y, alpha = c(1, 1), verbose = TRUE, test = FALSE)
+    coef[[TESTS]][,ii] <- HiLasso(x, y, alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+}
 
+saveRDS(coef, paste("log/Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".rds", sep = ""))
+
+for (ii in 1:ITERATIONS) { # This should be vectorized. -jmh
     for (jj in 1:TESTS) {
-        beta.hat <- as.matrix(as.vector(coef[[jj]]))
+        beta.hat <- as.matrix(as.vector(coef[[jj]][,ii]))
 
-        coef.all[,jj] = coef.all[,jj] + beta.hat
+        coef.avg[,jj] = coef[[jj]][,ii] + beta.hat
         rmse[ii,jj] <- RMSE(threshold, ground.truth, beta.hat, cov_x, y.val, x.val)[1,2]
         rmse2[ii,jj] <- RMSE2(ground.truth, beta.hat)
 
@@ -111,15 +119,28 @@ for (ii in 1:ITERATIONS) {
 
         TPR <- TP / (TP + FN)
         PPV <- TP / (TP + FP)
+        NPV <- TN / (TN + FN)
 
         f1[ii,jj] <- 2 * (PPV * TPR) / (PPV + TPR)
+        f2[ii,jj] <- sqrt((TP / (TP + FP)) * (TP / (TP + FN)))
+        dor[ii,jj] <- (TP / FP) / (FN / TN)
+        dor2[ii,jj] <- (PPV * NPV) / ((1 - PPV) * (1 - NPV))
     }
 }
 
-coef.all = coef.all / TESTS
+coef.avg = coef.avg / TESTS
 
-write.csv(x = coef.all, paste("log/Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = coef.avg, paste("log/Averaged_Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = rmse, paste("log/RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = rmse2, paste("log/RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = f1, paste("log/F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = f2, paste("log/F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = dor, paste("log/DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+write.csv(x = dor2, paste("log/DOR2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
+
 apply(rmse, 2, mean)
-apply(rmse.sel, 2, mean)
+apply(rmse2, 2, mean)
+apply(f1, 2, mean)
+apply(f2, 2, mean)
+apply(dor, 2, mean)
+apply(dor2, 2, mean)
