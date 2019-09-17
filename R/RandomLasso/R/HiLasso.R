@@ -15,17 +15,21 @@
 #' RandomLasso(x, y, verbose = FALSE, bootstraps = 300)
 #'
 
-HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
+HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
                     nfold = 5, verbose = TRUE, test = FALSE) {
 
     if (test) {start = as.numeric(Sys.time())}
     x <- as.matrix(x)
     y <- as.matrix(y)
-    features <- ncol(x)
-    samples <- nrow(x)
+    number.of.features <- ncol(x)
+    number.of.samples <- nrow(x)
+
+    if (missing(box.width)) {
+        box.width <- number.of.samples
+    }
 
     if (missing(bootstraps)) {
-        bootstraps <- round(features / samples) * 80
+        bootstraps <- ceiling(number.of.features / box.width) * 40
     }
     
     if (verbose) {
@@ -38,8 +42,8 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
             .helper.time.remaining(pb, start_time, ii, bootstraps)
         }
         
-        random.features <- sample(features, samples, replace = FALSE)
-        random.samples <- sample(samples, replace = TRUE)
+        random.features <- sample(number.of.features, box.width, replace = FALSE)
+        random.samples <- sample(number.of.samples, replace = TRUE)
         
         random.x <- x[random.samples, random.features]
         random.y <- y[random.samples, ]
@@ -52,7 +56,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
         standard.deviation <- sqrt(apply(random.x.scaled ^ 2, 2, sum))
         random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
 
-        beta.hat <- replicate(features, 0)
+        beta.hat <- replicate(number.of.features, 0)
         beta.hat[random.features] <- Lasso(random.x.scaled,
                                            random.y.scaled,
                                            alpha[1],
@@ -68,9 +72,9 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
             .helper.time.remaining(pb, start_time, ii, bootstraps)
         }
         
-        random.features <- sample(features, samples, replace = FALSE,
+        random.features <- sample(number.of.features, box.width, replace = FALSE,
                                   prob = importance.measure)
-        random.samples <- sample(samples, replace = TRUE)
+        random.samples <- sample(number.of.samples, replace = TRUE)
         
         random.x <- x[random.samples, random.features]
         random.y <- y[random.samples, ]
@@ -84,7 +88,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
         standard.deviation <- sqrt(apply(random.x.scaled ^ 2, 2, sum))
         random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
 
-        beta.hat <- replicate(features, 0)
+        beta.hat <- replicate(number.of.features, 0)
         beta.hat[random.features] <- AdaptiveLasso(random.x.scaled,
                                                    random.y.scaled,
                                                    alpha[2],
@@ -106,11 +110,11 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1),
     }
     
     reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
-    reduced.beta.hat <- matrix(reduced.beta.hat, nrow = features, ncol = 1)
+    reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
     rownames(reduced.beta.hat) <- colnames(x)
     colnames(reduced.beta.hat) <- "Coefficients"
     if (test) {
-        return(list(reduced.beta.hat, features, samples, bootstraps, as.numeric(Sys.time()) - start))
+        return(list(reduced.beta.hat, number.of.features, number.of.samples, bootstraps, box.width, as.numeric(Sys.time()) - start))
     }
     return(reduced.beta.hat)
 }
