@@ -4,7 +4,7 @@ getwd()
 library('Metrics')
 
 ITERATIONS = 9
-TESTS = 26
+TESTS = 40
 
 FindConfusion <- function(Truth, beta.hat) {
   if (beta.hat != 0) {
@@ -78,7 +78,7 @@ for (ii in 1:ITERATIONS) {
     ground.truth <- as.matrix(beta0)
 
     for (jj in 1:TESTS) {
-        coef[[jj]][,ii] <- HiLasso(x, y, alpha = c(0.5, 1), box.width = 62 - (2 * jj), verbose = TRUE, test = FALSE)
+        coef[[jj]][,ii] <- HiLasso(x, y, alpha = c(0.5, 1), box.width = (56 - jj), verbose = TRUE, test = FALSE)
     }
 
     #coef[[1]][,ii] <- Lasso(x, y, alpha = 0, nfold = 10) # Ridge Regression
@@ -138,16 +138,9 @@ write.csv(x = rmse2, paste("log/RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(S
 write.csv(x = f1, paste("log/F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = f2, paste("log/F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = dor, paste("log/DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
-write.csv(x = dor2, paste("log/DOR2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 
 apply(rmse, 2, mean)
 apply(rmse2, 2, mean)
 apply(f1, 2, mean)
 apply(f2, 2, mean)
 apply(dor, 2, mean)
-apply(TP, 2, mean)
-apply(FP, 2, mean)
-apply(FN, 2, mean)
-apply(TN, 2, mean)
-apply(TPR, 2, mean)
-apply(PPV, 2, mean)
