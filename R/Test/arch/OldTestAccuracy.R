@@ -103,7 +103,7 @@ saveRDS(coef, paste("log/Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.
 
 rmse <- rmse2 <- f1 <- f2 <- dor <-
 TP <- FP <- FN <- TN <- TPR <- PPV <- NPV <-
-matrix(data = 0, nrow = ITERATIONS, ncol = TESTS)
+matrix(data = 0, nrow = ITERATIONS + 1, ncol = TESTS)
 
 for (ii in 1:ITERATIONS) {
     for (jj in 1:TESTS) {
@@ -132,6 +132,12 @@ for (ii in 1:ITERATIONS) {
 
 coef.avg = coef.avg / TESTS
 
+rmse[ITERATIONS + 1,] <- apply(rmse, 2, mean)
+rmse2[ITERATIONS + 1,] <- apply(rmse2, 2, mean)
+f1[ITERATIONS + 1,] <- apply(f1, 2, mean)
+f2[ITERATIONS + 1,] <- apply(f2, 2, mean)
+dor[ITERATIONS + 1,] <- apply(dor, 2, mean)
+
 write.csv(x = coef.avg, paste("log/Averaged_Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = rmse, paste("log/RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = rmse2, paste("log/RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
@@ -139,8 +145,5 @@ write.csv(x = f1, paste("log/F1[", ncol(x), "x", nrow(x), "]", format(Sys.time()
 write.csv(x = f2, paste("log/F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 write.csv(x = dor, paste("log/DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S"), ".csv", sep = ""))
 
-apply(rmse, 2, mean)
-apply(rmse2, 2, mean)
-apply(f1, 2, mean)
-apply(f2, 2, mean)
-apply(dor, 2, mean)
+barplot(rmse[10,], main=paste("RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), border = NA, ylim = c(min(rmse[10,]) * 0.99, max(rmse[10,]) * 1.01), beside=TRUE, xpd = FALSE)
+barplot(f1[10,], main=paste("F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")))

@@ -17,7 +17,7 @@ Enhances:
     sparklyr
 Collate:
     helper.time.R
-    RegressionFunctions.R
+    helper.regression.R
     RandomLasso.R
     HiLasso.R
     ParallelRandomLasso.R
