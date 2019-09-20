@@ -19,7 +19,7 @@ RMSE2 <- function(ground.truth, beta.hat){
     sqrt(mean((ground.truth - beta.hat)^2))
 }
 
-RunAccuracyTest <- function(loglocation, coefficients, test, iterations = 10, ground.truth, y.val, x.val) {
+RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, ground.truth, y.val, x.val) {
     
     rmse <- rmse2 <- f1 <- f2 <- dor <- TP <- FP <- FN <- TN <- TPR <- PPV <- NPV <-
     matrix(data = 0, nrow = iterations + 1, ncol = TESTS)
@@ -27,7 +27,7 @@ RunAccuracyTest <- function(loglocation, coefficients, test, iterations = 10, gr
     coef.avg <- matrix(data = 0, nrow = nrow(coefficients[[1]]), ncol = TESTS)
     
     for (ii in 1:iterations) {
-        for (jj in 1:test) {
+        for (jj in 1:tests) {
             beta.hat <- as.matrix(as.vector(coefficients[[jj]][,ii]))
             
             coef.avg[,jj] = coefficients[[jj]][,ii] + beta.hat
@@ -50,8 +50,8 @@ RunAccuracyTest <- function(loglocation, coefficients, test, iterations = 10, gr
         }
     }
     
-    coef.avg = coef.avg / test
-    
+    coef.avg = coef.avg / tests
+
     rmse[iterations + 1,] <- apply(rmse[1:iterations,], 2, mean)
     rmse2[iterations + 1,] <- apply(rmse2[1:iterations,], 2, mean)
     f1[iterations + 1,] <- apply(f1[1:iterations,], 2, mean)
@@ -65,8 +65,8 @@ RunAccuracyTest <- function(loglocation, coefficients, test, iterations = 10, gr
     write.csv(x = f2, paste(loglocation, "_F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
     write.csv(x = dor, paste(loglocation, "_DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv", sep = ""))
     
-    # barplot(rmse[10,], main=paste("RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[10,] * 0.98), max(rmse[10,] * 1.05)), beside=TRUE, xpd = FALSE)
-    # barplot(f1[10,], main=paste("F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")))
+    barplot(rmse[iterations + 1,], main=paste(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE)
+    barplot(f1[iterations + 1,], main=paste(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE)
     
     return(list(rmse = rmse, rmse2 = rmse2, f1 = f1, f2 = f2, dor = dor))
 }
