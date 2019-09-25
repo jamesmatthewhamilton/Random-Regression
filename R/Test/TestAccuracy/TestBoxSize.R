@@ -1,5 +1,5 @@
 setwd(dirname(parent.frame(2)$ofile))
-detach("package:RandomLasso", unload = TRUE)
+if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE)}
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 

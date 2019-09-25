@@ -1,10 +1,11 @@
 setwd(dirname(parent.frame(2)$ofile))
-detach("package:RandomLasso", unload = TRUE)
+if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE)}
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
 ITERATIONS = 10
 TESTS = 14
+CORES = 12
 
 source("../func/SimulateTestData.R")
 s <- SimulateTestData("../res/sim2_sig3_our.RData", TESTS, ITERATIONS)
@@ -16,17 +17,17 @@ for (ii in 1:ITERATIONS) {
     s$coef[[1]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 0, nfold = 10) # Ridge Regression
     s$coef[[2]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 0.5, nfold = 10) # Elastic-net
     s$coef[[3]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 1, nfold = 10) # Lasso
-    s$coef[[4]][,ii] <- AdaptiveLasso(s$x[[ii]], s$y[[ii]], alpha = 1, importance.measure = coef[[1]][,ii], nfold = 10)
+    s$coef[[4]][,ii] <- AdaptiveLasso(s$x[[ii]], s$y[[ii]], alpha = 1, importance.measure = s$coef[[1]][,ii], nfold = 10)
     s$coef[[5]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
     s$coef[[6]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), verbose = TRUE, test = FALSE)
     s$coef[[7]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
     s$coef[[8]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), verbose = TRUE, test = FALSE)
     s$coef[[9]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
-    s$coef[[10]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), verbose = TRUE, test = FALSE)
-    s$coef[[11]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), verbose = TRUE, test = FALSE)
-    s$coef[[12]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), verbose = TRUE, test = FALSE)
-    s$coef[[13]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), verbose = TRUE, test = FALSE)
-    s$coef[[TESTS]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), verbose = TRUE, test = FALSE)
+    s$coef[[10]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), cores = CORES, verbose = TRUE, test = FALSE)
+    s$coef[[11]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), cores = CORES, verbose = TRUE, test = FALSE)
+    s$coef[[12]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = TRUE, test = FALSE)
+    s$coef[[13]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), cores = CORES, verbose = TRUE, test = FALSE)
+    s$coef[[TESTS]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = TRUE, test = FALSE)
 }
 
 source("../func/RunAccuracyTests.R")

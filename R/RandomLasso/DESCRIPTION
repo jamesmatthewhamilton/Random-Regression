@@ -11,9 +11,9 @@ License: Artistic-2.0
 Encoding: UTF-8
 LazyData: FALSE
 Imports:
-    glmnet
+    glmnet,
+    parallel
 Enhances:
-    parallel,
     sparklyr
 Collate:
     helper.time.R

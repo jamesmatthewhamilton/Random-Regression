@@ -65,8 +65,8 @@ RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, g
     write.csv(x = f2, paste(loglocation, "_F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
     write.csv(x = dor, paste(loglocation, "_DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv", sep = ""))
     
-    barplot(rmse[iterations + 1,], main=paste(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE)
-    barplot(f1[iterations + 1,], main=paste(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE)
+    barplot(rmse[iterations + 1,], main=paste(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE, border = NA)
+    barplot(f1[iterations + 1,], main=paste(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(f1[iterations + 1,] * 0.98), max(f1[iterations + 1,] * 1.05)), xpd = FALSE, border = NA)
     
     return(list(rmse = rmse, rmse2 = rmse2, f1 = f1, f2 = f2, dor = dor))
 }
