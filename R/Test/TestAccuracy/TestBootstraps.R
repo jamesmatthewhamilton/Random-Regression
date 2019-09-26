@@ -6,7 +6,7 @@ library(RandomLasso)
 ITERATIONS = 10
 TESTS = 200
 CORES = 12
-
+COLNAMES = NA
 
 source("../func/SimulateTestData.R")
 s <- SimulateTestData("../res/sim2_sig3_our.RData", TESTS, ITERATIONS)
@@ -23,4 +23,7 @@ for (ii in 1:ITERATIONS) {
 }
 
 source("../func/RunAccuracyTests.R")
-r <- RunAccuracyTest("../log/Bootstraps", s$coef, TESTS, ITERATIONS, s$ground.truth, s$y.val, s$x.val)
+r <- RunAccuracyTest("../log/Bootstraps", s$coef, TESTS, ITERATIONS, COLNAMES, s$ground.truth, s$y.val, s$x.val, s = seq(10, 2000, 10))
+
+source("../func/VisualizeAccuracyResults.R")
+VisualizeAccuracyResults("../log/BoxSize", r, s, "NA")

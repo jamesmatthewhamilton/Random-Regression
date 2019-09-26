@@ -19,12 +19,17 @@ RMSE2 <- function(ground.truth, beta.hat){
     sqrt(mean((ground.truth - beta.hat)^2))
 }
 
-RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, ground.truth, y.val, x.val) {
+RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, column.names, ground.truth, y.val, x.val) {
     
     rmse <- rmse2 <- f1 <- f2 <- dor <- TP <- FP <- FN <- TN <- TPR <- PPV <- NPV <-
     matrix(data = 0, nrow = iterations + 1, ncol = TESTS)
-    
+    if (!is.na(column.names)) {
+        colnames(rmse) <- column.names
+        colnames(f1) <- column.names
+    }
+
     coef.avg <- matrix(data = 0, nrow = nrow(coefficients[[1]]), ncol = TESTS)
+
     
     for (ii in 1:iterations) {
         for (jj in 1:tests) {
@@ -58,15 +63,12 @@ RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, g
     f2[iterations + 1,] <- apply(f2[1:iterations,], 2, mean)
     dor[iterations + 1,] <- apply(dor[1:iterations,], 2, mean)
     
-    write.csv(x = coef.avg, paste(loglocation, "_Averaged_Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
-    write.csv(x = rmse, paste(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
-    write.csv(x = rmse2, paste(loglocation, "_RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
-    write.csv(x = f1, paste(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
-    write.csv(x = f2, paste(loglocation, "_F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv", sep = ""))
-    write.csv(x = dor, paste(loglocation, "_DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv", sep = ""))
-    
-    barplot(rmse[iterations + 1,], main=paste(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(rmse[iterations + 1,] * 0.98), max(rmse[iterations + 1,] * 1.05)), xpd = FALSE, border = NA)
-    barplot(f1[iterations + 1,], main=paste(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%Fx%H-%M-%S")), ylim = c(min(f1[iterations + 1,] * 0.98), max(f1[iterations + 1,] * 1.05)), xpd = FALSE, border = NA)
+    write.csv(x = coef.avg, paste0(loglocation, "_Averaged_Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = rmse, paste0(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = rmse2, paste0(loglocation, "_RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = f1, paste0(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = f2, paste0(loglocation, "_F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = dor, paste0(loglocation, "_DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv"))
     
     return(list(rmse = rmse, rmse2 = rmse2, f1 = f1, f2 = f2, dor = dor))
 }
