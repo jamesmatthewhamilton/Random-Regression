@@ -74,7 +74,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
         list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
     }
 
-    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) #+ 10E-10 # Should released from memory.
+    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) #+ 10E-10 # Should release from memory.
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {

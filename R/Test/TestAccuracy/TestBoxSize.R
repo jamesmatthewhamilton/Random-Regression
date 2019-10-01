@@ -23,8 +23,8 @@ for (ii in 1:ITERATIONS) {
 }
 
 source("../func/RunAccuracyTests.R")
-r <- RunAccuracyTest("../log/BoxSize", s$coef, TESTS, ITERATIONS, COLNAMES, s$ground.truth, s$y.val, s$x.val)
+r <- RunAccuracyTest("../log/BoxSize", s, TESTS, ITERATIONS, COLNAMES, s$ground.truth, s$y.val, s$x.val)
 
-source("../func/VisualizeAccuracyResults.R")
-VisualizeAccuracyResults("../log/BoxSize", r, s, "Ratio[Features Selected by Total Samples]")
+source("../func/VisualizeResults.R")
+VisualizeResults("../log/BoxSize", r, s, "Ratio[Features Selected by Total Samples]")
 

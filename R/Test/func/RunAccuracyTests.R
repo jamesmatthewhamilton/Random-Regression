@@ -19,7 +19,11 @@ RMSE2 <- function(ground.truth, beta.hat){
     sqrt(mean((ground.truth - beta.hat)^2))
 }
 
-RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, column.names, ground.truth, y.val, x.val) {
+RunAccuracyTest <- function(loglocation, s, tests, iterations = 10, column.names, ground.truth, y.val, x.val) {
+    
+    cols = ncol(s$x[[1]])
+    rows = nrow(s$x[[1]])
+    coefficients = s$coef
     
     rmse <- rmse2 <- f1 <- f2 <- dor <- TP <- FP <- FN <- TN <- TPR <- PPV <- NPV <-
     matrix(data = 0, nrow = iterations + 1, ncol = TESTS)
@@ -63,12 +67,12 @@ RunAccuracyTest <- function(loglocation, coefficients, tests, iterations = 10, c
     f2[iterations + 1,] <- apply(f2[1:iterations,], 2, mean)
     dor[iterations + 1,] <- apply(dor[1:iterations,], 2, mean)
     
-    write.csv(x = coef.avg, paste0(loglocation, "_Averaged_Coefficients[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
-    write.csv(x = rmse, paste0(loglocation, "_RMSE[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
-    write.csv(x = rmse2, paste0(loglocation, "_RMSE_Raw[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
-    write.csv(x = f1, paste0(loglocation, "_F1[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
-    write.csv(x = f2, paste0(loglocation, "_F2[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
-    write.csv(x = dor, paste0(loglocation, "_DOR[", ncol(x), "x", nrow(x), "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv"))
+    write.csv(x = coef.avg, paste0(loglocation, "_Averaged_Coefficients[", rows, "x", cols, "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = rmse, paste0(loglocation, "_RMSE[", rows, "x", cols, "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = rmse2, paste0(loglocation, "_RMSE_Raw[", rows, "x", cols, "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = f1, paste0(loglocation, "_F1[", rows, "x", cols, "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = f2, paste0(loglocation, "_F2[", rows, "x", cols, "]", format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
+    write.csv(x = dor, paste0(loglocation, "_DOR[", rows, "x", cols, "]", format(Sys.time(), "%F@x%H-%M-%S"), ".csv"))
     
     return(list(rmse = rmse, rmse2 = rmse2, f1 = f1, f2 = f2, dor = dor))
 }

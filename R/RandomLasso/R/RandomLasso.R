@@ -16,7 +16,7 @@
 #'
 
 RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
-                        nfold = 5, verbose = TRUE, test = FALSE) {
+                        nfold = 5, cores = FALSE, verbose = TRUE, test = FALSE) {
 
     if (test) {start = as.numeric(Sys.time())}
     x = as.matrix(x)
@@ -26,6 +26,10 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
 
     if (missing(bootstraps)) {
         bootstraps <- round(features / samples) * 40
+    }
+
+    if (cores == TRUE) {
+        cores <- detectCores()
     }
 
     if (verbose) {
@@ -60,8 +64,13 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
         return(beta.hat)
     }
 
-    list.beta.hat <- lapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()))
-    importance.measure <- abs(Reduce('+', list.beta.hat))
+    if (cores < 2) {
+        list.beta.hat <- lapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()))
+    } else {
+        list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
+    }
+
+    importance.measure <- abs(Reduce('+', list.beta.hat)) #+ 10E-10
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
@@ -96,7 +105,11 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
         pb <- txtProgressBar(min = 0, max = bootstraps, style = 3)
     }
 
-    list.beta.hat <- lapply(seq_len(bootstraps), .part2, x, y, as.numeric(Sys.time()))
+    if (cores < 2) {
+        list.beta.hat <- lapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()))
+    } else {
+        list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
+    }
 
     if (verbose) {
         cat("\n[Done]\n")

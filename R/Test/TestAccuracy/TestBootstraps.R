@@ -3,19 +3,19 @@ if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
-ITERATIONS = 10
-TESTS = 200
-CORES = 12
-COLNAMES = NA
+ITERATIONS = 5
+TESTS = 150
+CORES = 16
+COLNAMES = seq(20, 3000, 20)
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim2_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim4_sig3_our.RData", TESTS, ITERATIONS)
 
 for (ii in 1:ITERATIONS) {
     for (jj in 1:TESTS) {
         s$coef[[jj]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]],
                                      alpha = c(0.5, 1),
-                                     bootstraps = (10 * jj),
+                                     bootstraps = (20 * jj),
                                      cores = CORES,
                                      verbose = TRUE,
                                      test = FALSE)
@@ -23,7 +23,7 @@ for (ii in 1:ITERATIONS) {
 }
 
 source("../func/RunAccuracyTests.R")
-r <- RunAccuracyTest("../log/Bootstraps", s$coef, TESTS, ITERATIONS, COLNAMES, s$ground.truth, s$y.val, s$x.val, s = seq(10, 2000, 10))
+r <- RunAccuracyTest("../log/Bootstraps", s, TESTS, ITERATIONS, COLNAMES, s$ground.truth, s$y.val, s$x.val)
 
-source("../func/VisualizeAccuracyResults.R")
-VisualizeAccuracyResults("../log/BoxSize", r, s, "NA")
+source("../func/VisualizeResults.R")
+VisualizeResults("../log/BoxSize", r, s, "NA")
