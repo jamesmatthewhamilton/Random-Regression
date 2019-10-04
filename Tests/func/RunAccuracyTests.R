@@ -61,19 +61,27 @@ RunAccuracyTest <- function(s, dir, title, tests, iterations = 10, column.names)
 
     coef.avg = coef.avg / tests
 
-    rmse[iterations + 1,] <- apply(rmse[1:iterations,], 2, mean)
-    rmse2[iterations + 1,] <- apply(rmse2[1:iterations,], 2, mean)
-    f1[iterations + 1,] <- apply(f1[1:iterations,], 2, mean)
-    f2[iterations + 1,] <- apply(f2[1:iterations,], 2, mean)
-    dor[iterations + 1,] <- apply(dor[1:iterations,], 2, mean)
+    if (tests > 1) {
+        rmse[iterations + 1,] <- apply(rmse[1:iterations,], 2, mean)
+        rmse2[iterations + 1,] <- apply(rmse2[1:iterations,], 2, mean)
+        f1[iterations + 1,] <- apply(f1[1:iterations,], 2, mean)
+        f2[iterations + 1,] <- apply(f2[1:iterations,], 2, mean)
+        dor[iterations + 1,] <- apply(dor[1:iterations,], 2, mean)
+    } else {
+        rmse[iterations + 1,] <- mean(rmse[1:iterations,])
+        rmse2[iterations + 1,] <- mean(rmse2[1:iterations,])
+        f1[iterations + 1,] <- mean(f1[1:iterations,])
+        f2[iterations + 1,] <- mean(f2[1:iterations,])
+        dor[iterations + 1,] <- mean(dor[1:iterations,])
+    }
     
     rows.cols <- paste0("[", rows, "x", cols, "]")
     directory <- paste0(dir, "/", title, "[", rows, "x", cols, "]", format(Sys.time(), "%F_%H:%M"))
     dir.create(directory)
     
     write.csv(x = coef.avg, paste0(directory, "/Averaged_Coefficients", rows.cols, ".csv"))
-    write.csv(x = rmse, paste0(directory, "/RMSE", rows.cols, "]", ".csv"))
-    write.csv(x = rmse2, paste0(directory, "/RMSE_Raw", rows.cols, ".csv"))
+    write.csv(x = rmse, paste0(directory, "/RMSE", rows.cols, ".csv"))
+    write.csv(x = rmse2, paste0(directory, "/Pure_RMSE", rows.cols, ".csv"))
     write.csv(x = f1, paste0(directory, "/F1", rows.cols, ".csv"))
     write.csv(x = f2, paste0(directory, "/F2", rows.cols, ".csv"))
     write.csv(x = dor, paste0(directory, "/DOR", rows.cols, ".csv"))

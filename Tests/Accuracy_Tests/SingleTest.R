@@ -4,12 +4,12 @@ install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
 ITERATIONS = 10
-TESTS = 30
-CORES = 16
+TESTS = 1
+CORES = FALSE
 COLNAMES = NA
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim2_sig3_our.RData", TESTS, ITERATIONS)
 pb <- txtProgressBar(min = 0, max = (TESTS * ITERATIONS), style = 3)
 
 for (ii in 1:ITERATIONS) {
