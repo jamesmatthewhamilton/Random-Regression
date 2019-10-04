@@ -132,7 +132,7 @@
                            number.of.samples, bootstraps, pb,
                            start.time, alpha, verbose, importance) {
   beta.hat <- numeric(number.of.features)
-  if (verbose) {.helper.time.remaining(pb, start.time, ii, bootstraps)}
+  if (verbose) {.continue.progress.bar(pb, start.time, ii, bootstraps)}
 
   # Sample features column numbers equal to the number of samples.
   random.features <- sample(number.of.features, number.of.samples,
@@ -155,7 +155,7 @@
                            number.of.samples, bootstraps, pb,
                            start.time, alpha, verbose) {
   beta.hat <- numeric(number.of.features)
-  if (verbose) {.helper.time.remaining(pb, start.time, ii, bootstraps)}
+  if (verbose) {.continue.progress.bar(pb, start.time, ii, bootstraps)}
 
   # Sample features column numbers equal to the number of samples.
   random.features <- sample(number.of.features, number.of.samples,
@@ -202,7 +202,7 @@ Lasso <- function(independent, dependent, alpha) {
 # >>>>>>>>>>>> FUNCTION TIME HELPER <<<<<<<<<<<<
 # [Description] Controls printing of progress bar and time remaining.
 # [Returns] Nothing, prints to consol.
-.helper.time.remaining <- function(pb, start.time, current.increment,
+.continue.progress.bar <- function(pb, start.time, current.increment,
                                    end.increment) {
   setTxtProgressBar(pb, current.increment)
   passed <- as.numeric(Sys.time()) - start.time

@@ -41,7 +41,7 @@ RapidRandomLasso <- function(x, y, bootstraps, alpha = c(1, 1), verbose = TRUE, 
   }
 
   .part1 <- function(ii, x, y, start.time) {
-    if (verbose) {.helper.time.remaining(pb, start.time, ii, bootstraps)}
+    if (verbose) {.continue.progress.bar(pb, start.time, ii, bootstraps)}
 
     beta.hat <- numeric(number.of.features)
     random.features <- sample(number.of.features, number.of.samples, replace = FALSE)
@@ -68,7 +68,7 @@ RapidRandomLasso <- function(x, y, bootstraps, alpha = c(1, 1), verbose = TRUE, 
   # ------------ Step II ------------ #
 
   .part2 <- function(ii, x, y, start.time) {
-    if (verbose) {.helper.time.remaining(pb, start.time, ii, bootstraps)}
+    if (verbose) {.continue.progress.bar(pb, start.time, ii, bootstraps)}
 
     beta.hat <- numeric(number.of.features)
 

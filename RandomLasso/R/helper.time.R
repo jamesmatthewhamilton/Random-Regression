@@ -1,4 +1,10 @@
-.helper.time.remaining <- function(pb, start.time, current.increment,
+.start.progress.bar <- function(pb, max, min = 0, style = 3) {
+    pb <- txtProgressBar(min = min, max = max, style = style)
+    start <<- as.numeric(Sys.time())
+    return(list(pb = pb, start = start))
+}
+
+.continue.progress.bar <- function(pb, start.time, current.increment,
                                    end.increment) {
     setTxtProgressBar(pb, current.increment)
     passed <- as.numeric(Sys.time()) - start.time

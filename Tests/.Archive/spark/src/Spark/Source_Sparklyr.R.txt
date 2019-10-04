@@ -104,7 +104,7 @@ RBootstrap <- function(ii, x, y, features,
                        samples, bootstraps, pb,
                        start.time, alpha, verbose) {
   beta.hat <- numeric(features)
-  if (verbose) {.helper.time.remaining(pb, start.time, ii, bootstraps)}
+  if (verbose) {.continue.progress.bar(pb, start.time, ii, bootstraps)}
   
   random.features <- sample(features, samples,
                             replace = FALSE)

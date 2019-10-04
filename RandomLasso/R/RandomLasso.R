@@ -39,7 +39,7 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
 
     .part1 <- function(ii, x, y, start_time) {
         if (verbose) {
-	    .helper.time.remaining(pb, start_time, ii, bootstraps)
+	    .continue.progress.bar(pb, start_time, ii, bootstraps)
 	    }
 
         random.features <- sample(features, samples, replace = FALSE)
@@ -74,7 +74,7 @@ RandomLasso <- function(x, y, bootstraps, alpha = c(1, 1),
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
-            .helper.time.remaining(pb, start_time, ii, bootstraps)
+            .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
         random.features <- sample(features, samples, replace = FALSE,

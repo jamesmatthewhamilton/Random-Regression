@@ -2,8 +2,6 @@ options(scipen = 999) # Ctrl-Shift-Enter
 setwd(dirname(parent.frame(2)$ofile))
 getwd()
 
-CORES = 12
-
 ##  100 Features 50 Samples:
 x = as.matrix(read.csv("res/qx")[,-1])
 y = as.matrix(read.csv("res/qy")[,-1])

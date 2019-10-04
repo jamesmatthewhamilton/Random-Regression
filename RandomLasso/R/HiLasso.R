@@ -43,7 +43,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
 
     .part1 <- function(ii, x, y, start_time) {
         if (verbose) {
-            .helper.time.remaining(pb, start_time, ii, bootstraps)
+            .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
         random.features <- sample(number.of.features, box.width, replace = FALSE)
@@ -90,7 +90,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
 
     .part2 <- function(random.features, x, y, start_time) {
         if (verbose) {
-            .helper.time.remaining(pb, start_time, ii, bootstraps)
+            .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
         random.samples <- sample(number.of.samples, replace = TRUE)
