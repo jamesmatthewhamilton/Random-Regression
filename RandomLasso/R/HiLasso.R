@@ -74,15 +74,25 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
         list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
     }
 
-    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) #+ 10E-10 # Should release from memory.
+    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) + 10E-10 # Should release from memory.
 
-    .part2 <- function(ii, x, y, start_time) {
+    .sample <- function(ii, x, y) {
+        random.features <- sample(number.of.features, box.width, replace = FALSE,
+                                  prob = importance.measure)
+        return(random.features)
+    }
+
+    .hits <- function(random.features, x, y) {
+        random.hits <- replicate(number.of.features, 0)
+        random.hits[random.features] <- 1
+        return(random.hits)
+    }
+
+    .part2 <- function(random.features, x, y, start_time) {
         if (verbose) {
             .helper.time.remaining(pb, start_time, ii, bootstraps)
         }
 
-        random.features <- sample(number.of.features, box.width, replace = FALSE,
-                                  prob = importance.measure)
         random.samples <- sample(number.of.samples, replace = TRUE)
 
         random.x <- x[random.samples, random.features]
@@ -112,9 +122,13 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
     }
 
     if (cores < 2) {
-        list.beta.hat <- lapply(seq_len(bootstraps), .part2, x, y, as.numeric(Sys.time()))
+        random.features <- lapply(seq_len(bootstraps), .sample, x, y)
+        hits <- lapply(random.features, .hits, x, y)
+        list.beta.hat <- lapply(random.features, .part2, x, y, as.numeric(Sys.time()))
     } else {
-        list.beta.hat <- mclapply(seq_len(bootstraps), .part2, x, y, as.numeric(Sys.time()), mc.cores = cores)
+        random.features <- mclapply(seq_len(bootstraps), .sample, x, y, mc.cores = cores)
+        hits <- mclapply(random.features, .hits, x, y, mc.cores = cores)
+        list.beta.hat <- mclapply(random.features, .part2, x, y, as.numeric(Sys.time()), mc.cores = cores)
     }
 
     if (verbose) {
@@ -122,8 +136,10 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
         close(pb)
     }
 
-    reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
+    hit.count <- Reduce('+', hits)
+    reduced.beta.hat <- Reduce('+', list.beta.hat) / hit.count
     reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
+    reduced.beta.hat[is.na(reduced.beta.hat)] <- 0
     rownames(reduced.beta.hat) <- colnames(x)
     colnames(reduced.beta.hat) <- "Coefficients"
     if (test) {
