@@ -19,9 +19,12 @@ Collate:
     helper.time.R
     helper.regression.R
     RandomLasso.R
-    HiLasso.R
     ParallelRandomLasso.R
     RapidRandomLasso.R
     SteppedRandomLasso.R
+    HiLasso.R
+    HiLassoDS.R
+    HiLassoC.R
+    HiLassoTRI.R
 biocViews:
     Regression

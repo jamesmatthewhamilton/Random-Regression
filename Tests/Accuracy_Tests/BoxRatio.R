@@ -4,19 +4,19 @@ install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
 ITERATIONS = 5
-TESTS = 46
+TESTS = 47
 CORES = 16
-COLNAMES = seq(100, 9, -2) / 50
+COLNAMES = seq(245, 15, -5) / 200
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim3_sig3_our.RData", TESTS, ITERATIONS)
 pb <- txtProgressBar(min = 0, max = (TESTS * ITERATIONS), style = 3)
 
 for (ii in 1:ITERATIONS) {
     for (jj in 1:TESTS) {
         s$coef[[jj]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]],
                                     alpha = c(0.5, 1),
-                                    box.width = (100 - (jj * 2)),
+                                    box.width = (250 - (jj * 5)),
                                     cores = CORES,
                                     verbose = FALSE,
                                     test = FALSE)
