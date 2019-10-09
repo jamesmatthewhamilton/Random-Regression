@@ -3,28 +3,23 @@ if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
-ITERATIONS = 5
+ITERATIONS = 10
 TESTS = 1
-CORES = FALSE
-COLNAMES = NA
+CORES = 16
+COLNAMES = "Delete Me"
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim2_sig3_our.RData", TESTS, ITERATIONS)
-#pb <- txtProgressBar(min = 0, max = (TESTS * ITERATIONS), style = 3)
+s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
 
 for (ii in 1:ITERATIONS) {
     for(jj in 1:TESTS) {
-        s$coef[[jj]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]],
+        s$coef[[jj]][,ii] <- HiLassoC(s$x[[ii]], s$y[[ii]],
                                      alpha = c(0.5, 1),
+                                     cutoff = c(0,0,0),
                                      cores = CORES,
-                                     verbose = TRUE,
-                                     test = FALSE)
-        #setTxtProgressBar(pb, ((ii - 1) * TESTS + jj))
+                                     verbose = FALSE)
     }
 }
 
 source("../func/RunAccuracyTests.R")
-r <- RunAccuracyTest(s, "../log", "SingleTest", TESTS, ITERATIONS, COLNAMES)
-
-source("../func/VisualizeResults.R")
-VisualizeResults(r, s, "")
+r <- RunAccuracyTest(s, "../log", "DeleteMePlease", TESTS, ITERATIONS, COLNAMES)

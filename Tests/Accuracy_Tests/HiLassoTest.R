@@ -28,11 +28,11 @@ for (ii in 1:ITERATIONS) {
     setTxtProgressBar(pb, ((ii - 1) * TESTS + 3))
 
     print("HiLassoC:")
-    s$coef[[4]][,ii] <- HiLassoC(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, cutoff = 0.001, cutoff2 = 0.0001)
+    s$coef[[4]][,ii] <- HiLassoC(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, cutoff = c(0.001, 0.001, 0.001))
     setTxtProgressBar(pb, ((ii - 1) * TESTS + 4))
 
     print("HiLassoC:")
-    s$coef[[5]][,ii] <- HiLassoC(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, cutoff = 0.005, cutoff2 = 0.0001)
+    s$coef[[5]][,ii] <- HiLassoC(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, cutoff = c(0.001, 0.001, 0.001))
     setTxtProgressBar(pb, ((ii - 1) * TESTS + 5))
 
     print("HiLassoTRI:")
