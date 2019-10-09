@@ -16,7 +16,7 @@
 #'
 
 HiLassoC <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
-                    nfold = 5, cutoff, cores = FALSE, verbose = TRUE, test = FALSE) {
+                    nfold = 5, cutoff, cutoff2, cores = FALSE, verbose = TRUE, test = FALSE) {
     
     if (test) {start = as.numeric(Sys.time())}
     x <- as.matrix(x)
@@ -27,7 +27,11 @@ HiLassoC <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
     if (missing(cutoff)) {
         cutoff <- 1 / number.of.features
     }
-    
+
+    if (missing(cutoff2)) {
+        cutoff2 <- 1 / number.of.features
+    }
+
     if (missing(box.width)) {
         box.width <- number.of.samples
     }
@@ -79,7 +83,7 @@ HiLassoC <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
         list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
     }
     
-    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) #+ 10E-10 # Should release from memory.
+    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) + 10E-10 # Should release from memory.
     
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
@@ -129,7 +133,7 @@ HiLassoC <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
     }
     
     reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
-    reduced.beta.hat[abs(reduced.beta.hat) < cutoff] <- 0
+    reduced.beta.hat[abs(reduced.beta.hat) < cutoff2] <- 0
     reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
     rownames(reduced.beta.hat) <- colnames(x)
     colnames(reduced.beta.hat) <- "Coefficients"
