@@ -36,6 +36,18 @@ AdaptiveLasso <- function(x, y, alpha, importance.measure, nfold) {
     return(hat.beta)
 }
 
+AdaptiveLasso2 <- function(x, y, alpha, nfold) {
+    
+    cv <- cv.glmnet(x, y, type.measure = "mse",
+                    nfold = nfold, alpha = 1)
+    best_ridge_coef <- as.numeric(coef(cv, s = cv$lambda.min))[-1]
+    coefficients <- glmnet(x, y, lambda = cv$lambda.min, alpha = alpha,
+                           standardize = FALSE, intercept = FALSE,
+                           penalty.factor = 1 / abs(best_ridge_coef))
+    hat.beta <- coef(coefficients)[-1]
+    return(hat.beta)
+}
+
 RapidLasso <- function(x, y, alpha, lambda) {
     coefficients <- glmnet(x, y, lambda = lambda, alpha = alpha,
                            standardize = FALSE, intercept = FALSE)

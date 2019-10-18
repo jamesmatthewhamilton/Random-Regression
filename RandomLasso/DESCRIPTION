@@ -28,5 +28,6 @@ Collate:
     HiLassoTRI.R
     HiLassoPURE.R
     HiLassoVPURE.R
+    HiLassoLessRand.R
 biocViews:
     Regression

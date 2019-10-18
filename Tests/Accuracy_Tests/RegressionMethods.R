@@ -3,15 +3,15 @@ if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
-ITERATIONS = 10
-TESTS = 16
-CORES = 16
+ITERATIONS = 2
+TESTS = 14
+CORES = TRUE
 COLNAMES = c("Ridge Regression", "0.25", "Elatic-Net", "0.75", "Lasso", "Adaptive",
-             "RandomLasso[0,0.5]", "RandomLasso[0,1]", "RandomLasso[0.5,0.5]", "RandomLasso[1,1]", "RandomLasso[0.5,1]",
-             "HiLasso[0.5,0.5]", "HiLasso[0,1]", "HiLasso[0.5,0.5]", "HiLasso[1,1]", "HiLasso[0.5,1]")
+             "RandomLasso[0.5,0.5]", "RandomLasso[1,1]", "RandomLasso[0.5,A(1)]",
+             "HiLasso[0,0.5]", "HiLasso[0,1]", "HiLasso[0.5,0.5]", "HiLasso[1,1]", "HiLasso[0.5,1]")
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim4_sig3_our.RData", TESTS, ITERATIONS)
 pb <- txtProgressBar(min = 0, max = (2 * ITERATIONS), style = 3)
 
 library('glmnet')
@@ -24,17 +24,15 @@ for (ii in 1:ITERATIONS) {
     s$coef[[3]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 0.5, nfold = 10) # Elastic-net
     s$coef[[4]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 0.75, nfold = 10) # Elastic-net
     s$coef[[5]][,ii] <- Lasso(s$x[[ii]], s$y[[ii]], alpha = 1, nfold = 10) # Lasso
-    s$coef[[6]][,ii] <- AdaptiveLasso(s$x[[ii]], s$y[[ii]], alpha = 1, importance.measure = s$coef[[1]][,ii], nfold = 10)
-    s$coef[[7]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[8]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[9]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[10]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[6]][,ii] <- AdaptiveLasso2(s$x[[ii]], s$y[[ii]], alpha = 1, nfold = 10)
+    s$coef[[7]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[8]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[9]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = FALSE, test = FALSE, adaptive = TRUE)
     setTxtProgressBar(pb, ((ii - 1) * TESTS + 1)) # ~50% Complete.
-    s$coef[[11]][,ii] <- RandomLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[12]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[13]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[14]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
-    s$coef[[15]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[10]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[11]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0, 1), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[12]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 0.5), cores = CORES, verbose = FALSE, test = FALSE)
+    s$coef[[13]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(1, 1), cores = CORES, verbose = FALSE, test = FALSE)
     s$coef[[TESTS]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]], alpha = c(0.5, 1), cores = CORES, verbose = FALSE, test = FALSE)
     setTxtProgressBar(pb, ((ii - 1) * TESTS + 2))
 }

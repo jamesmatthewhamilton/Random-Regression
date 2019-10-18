@@ -16,7 +16,7 @@
 #'
 
 HiLassoDS <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
-                    nfold = 5, cores = FALSE, verbose = TRUE, test = FALSE) {
+                      nfold = 5, cores = FALSE, verbose = TRUE, test = FALSE, divide.bootstrap = TRUE) {
 
     if (test) {start = as.numeric(Sys.time())}
     x <- as.matrix(x)
@@ -143,7 +143,11 @@ HiLassoDS <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
     }
 
     hit.count <- Reduce('+', hits)
-    reduced.beta.hat <- Reduce('+', list.beta.hat) / hit.count
+    if (count.samples.all) {
+        reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
+    } else {
+        reduced.beta.hat <- Reduce('+', list.beta.hat) / hit.count
+    }
     reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
     reduced.beta.hat[is.na(reduced.beta.hat)] <- 0
     rownames(reduced.beta.hat) <- colnames(x)
