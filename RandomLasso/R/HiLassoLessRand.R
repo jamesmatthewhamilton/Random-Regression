@@ -1,4 +1,5 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Only mixes up samples, won't allow repeats.
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.

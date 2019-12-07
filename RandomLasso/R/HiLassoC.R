@@ -1,4 +1,5 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Has option to add a hard-cutoff value at: (1) Part1, (2) Part2, (3) End.
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.

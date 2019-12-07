@@ -1,4 +1,6 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Divides by what was actually sampled, and not the number of bootstrap.
+#' DS: Divide-by-Sample
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.
@@ -143,7 +145,7 @@ HiLassoDS <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width,
     }
 
     hit.count <- Reduce('+', hits)
-    if (count.samples.all) {
+    if (divide.bootstrap) {
         reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
     } else {
         reduced.beta.hat <- Reduce('+', list.beta.hat) / hit.count

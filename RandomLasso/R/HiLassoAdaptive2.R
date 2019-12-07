@@ -1,4 +1,6 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Does not use weights from part 1 in Adaptive Lasso.
+#' Uses traditional adaptive lasso.
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.

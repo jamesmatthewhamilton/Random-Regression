@@ -1,4 +1,5 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Performs a Part 3.
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.

@@ -1,4 +1,5 @@
 #' Performs variable selection and regularization using Random Lasso.
+#' Does not divide by the standard deviation for each feature.
 #'
 #' @param x Matrix of intependent data.
 #' @param y Matrix of dependent data.

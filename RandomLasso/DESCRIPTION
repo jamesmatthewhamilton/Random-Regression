@@ -29,5 +29,6 @@ Collate:
     HiLassoPURE.R
     HiLassoVPURE.R
     HiLassoLessRand.R
+    HiLassoAdaptive2.R
 biocViews:
     Regression
