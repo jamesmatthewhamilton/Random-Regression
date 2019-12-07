@@ -3,7 +3,7 @@ if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE
 install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
-ITERATIONS = 2
+ITERATIONS = 10
 TESTS = 14
 CORES = TRUE
 COLNAMES = c("Ridge Regression", "0.25", "Elatic-Net", "0.75", "Lasso", "Adaptive",
@@ -11,7 +11,7 @@ COLNAMES = c("Ridge Regression", "0.25", "Elatic-Net", "0.75", "Lasso", "Adaptiv
              "HiLasso[0,0.5]", "HiLasso[0,1]", "HiLasso[0.5,0.5]", "HiLasso[1,1]", "HiLasso[0.5,1]")
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim4_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
 pb <- txtProgressBar(min = 0, max = (2 * ITERATIONS), style = 3)
 
 library('glmnet')
