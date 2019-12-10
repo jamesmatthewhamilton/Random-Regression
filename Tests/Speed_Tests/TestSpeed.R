@@ -1,15 +1,12 @@
 options(scipen = 999)
-setwd("~/Dropbox/MatthewHamilton/Hi-Lasso/R/Test/res/")
-
-##  1000 Features 100 Samples:
-x = as.matrix(read.csv("x")[,-1])
-y = as.matrix(read.csv("y")[,-1])
-
-detach("package:RandomLasso", unload = TRUE)
-install.packages("~/Dropbox/MatthewHamilton/Hi-Lasso/R/RandomLasso/",
-                 repos = NULL, type = "source")
+setwd(dirname(parent.frame(2)$ofile))
+if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE)}
+install.packages("../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 
+##  1000 Features 100 Samples:
+x = as.matrix(read.csv("../res/x")[,-1])
+y = as.matrix(read.csv("../res/y")[,-1])
 
 # >>>>>> Generating Huge Test Data <<<<<<
 map = list()
@@ -62,21 +59,55 @@ write.csv(x = delist, paste("../log/Bootstraps(3)", Sys.time(), ".csv", sep = ""
 # >>>>>> Parallel Testing X and Y <<<<<<
 library(parallel)
 detectCores()
-cores <- 2
-test = list()
-cat("\nTesting:\n")
-pb <- txtProgressBar(min = 0, max = 200, style = 3)
-for (ii in 1:200) {
-    setTxtProgressBar(pb, ii)
-    test[[ii]] = ParallelRandomLasso(superX2[1:(ii * 10),1:(ii * 100)],
-                                     superY[1:(ii * 10),], alpha = c(1, 1),
-                                     bootstraps = 5 ,
-                                     verbose = FALSE,
-                                     test = TRUE,
-                                     cores = cores)
+for (cores in c(1, seq(2, (detectCores() / 2), 2))) {
+    TESTS = 200
+    BOOTSTRAPS = 200
+    cat(paste0("\nTesting ", cores, " Cores...\n"))
+    core.start <- Sys.time()
+    pb <- txtProgressBar(min = 0, max = TESTS, style = 3)
+
+    for (ii in 1:TESTS) {
+        test.start = as.numeric(Sys.time())
+        sample.count = (ii + 9) * 5
+        feature.count = sample.count * 10
+        sample.index = 1:sample.count
+        feature.index = 1:feature.count
+        if (cores == 1) {
+            HiLasso(superX2[sample.index, feature.index],
+                            superY[sample.index, ], alpha = c(1, 1),
+                            bootstraps = BOOTSTRAPS,
+                            verbose = FALSE)
+        } else {
+            HiLasso(superX2[sample.index, feature.index],
+                            superY[sample.index, ], alpha = c(1, 1),
+                            bootstraps = BOOTSTRAPS,
+                            verbose = FALSE,
+                            cores = cores)
+        }
+        time <- as.numeric(Sys.time()) - test.start
+        true_time <- time * 2
+        test_results <- c(features = feature.count,
+                          samples = sample.count,
+                          bootstraps = BOOTSTRAPS,
+                          time = time,
+                          true_time)
+        names(test_results)[5] <- paste0("cores=", cores)
+        if (ii == 1) {
+            core_results <- t(test_results)
+        } else {
+            core_results <- rbind(core_results, t(test_results))
+        }
+        setTxtProgressBar(pb, ii)
+    }
+    cat(paste0("\n", Sys.time() - core.start))
+    if (cores == 1) {
+        all_results <- core_results
+    } else {
+        all_results <- cbind(all_results, core_results)
+    }
 }
-delist = t(sapply(test, unlist))
-write.csv(x = delist, paste("../log/XYMULTICore", Sys.time(), ".csv", sep = ""))
+write.csv(x = all_results, paste0("../log/MultiCoreSpeed",
+                                  format(Sys.time(), "%F@%H-%M-%S"), ".csv"))
 
 
 # >>>>>> Testing Just Features <<<<<<
