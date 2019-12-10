@@ -16,9 +16,8 @@
 #'
 
 HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se = c(FALSE, FALSE),
-                    nfold = 5, cores = FALSE, verbose = TRUE, test = FALSE) {
-    
-    if (test) {start = as.numeric(Sys.time())}
+                    nfold = 5, cores = FALSE, verbose = TRUE, verbose.output = FALSE) {
+    if (verbose) {start.time = as.numeric(Sys.time())}
     x <- as.matrix(x)
     y <- as.matrix(y)
     number.of.features <- ncol(x)
@@ -75,7 +74,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se =
         list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
     }
 
-    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) + 10E-9 # Should release from memory.
+    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) + 10E-9
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
@@ -121,6 +120,7 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se =
 
     if (verbose) {
         cat("\n[Done]\n")
+        print(Sys.time() - start.time)
         close(pb)
     }
 
@@ -128,8 +128,9 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se =
     reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
     rownames(reduced.beta.hat) <- colnames(x)
     colnames(reduced.beta.hat) <- "Coefficients"
-    if (test) {
-        return(list(reduced.beta.hat, number.of.features, number.of.samples, bootstraps, box.width, as.numeric(Sys.time()) - start))
+    if (verbose.output) {
+        return(list(beta.hat = reduced.beta.hat,
+                    importance.measure = importance.measure))
     }
     return(reduced.beta.hat)
 }

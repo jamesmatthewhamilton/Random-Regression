@@ -1,4 +1,4 @@
-Lasso <- function(x, y, alpha, nfold, lambda.1se = TRUE) {
+Lasso <- function(x, y, alpha, nfold, lambda.1se = FALSE) {
 
     cv <- cv.glmnet(x, y, type.measure = "mse",
                     nfold = nfold, alpha = alpha)
@@ -27,7 +27,7 @@ ElasticNet <- function(x, y, nfold) { # Doctor Kim's Version
     return(hat.beta)
 }
 
-AdaptiveLasso <- function(x, y, alpha, importance.measure, nfold, lambda.1se = TRUE) {
+AdaptiveLasso <- function(x, y, alpha, importance.measure, nfold, lambda.1se = FALSE) {
 
     cv <- cv.glmnet(x, y, type.measure = "mse",
                     nfold = nfold, alpha = alpha)
