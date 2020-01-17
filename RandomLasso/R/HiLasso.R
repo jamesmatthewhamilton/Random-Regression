@@ -1,43 +1,42 @@
 #' Performs variable selection and regularization using Random Lasso.
 #'
-#' @param x Matrix of intependent data.
-#' @param y Matrix of dependent data.
-#' @param bootstraps Number of random bootstraps taken.
-#' @param alpha Regression method, e.g. least square, ridge, net elastic, lasso.
-#' @param nfold Number of folds run to find optimal hyperparameter.
-#' @param verbose Supresses all printing and time estimating functions.
-#' @param test Tests the functions performance. Returns additional parameters.
+#' @param x Matrix of independent data.
+#' @param y Matrix or vector of dependent data.
+#' @param bootstraps Number of times features are randomly sampled.
+#' @param alpha Regression method, e.g. ridge=0, elastic=0.5, lasso=1.
+#' @param lambda_1se Largest value of lambda such that error is within 1 standard error of the minimum.
+#' @param box_width Number of features sampled when randomly sampling.
+#' @param nfold Number of folds tested to find the optimal hyperparameter.
+#' @param core Cores used when running in parallel. 
+#' @param verbose Supresses all printing and time estimatation.
+#' @param verbose_output Returns additional information as list.
 #' @keywords
 #' @author James Matthew Hamilton
 #' @export
 #' @examples
 #' RandomLasso(x, y)
-#' RandomLasso(x, y, verbose = FALSE, bootstraps = 300)
+#' RandomLasso(x, y, verbose=FALSE, bootstraps=300)
 #'
 
-HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se = c(FALSE, FALSE),
-                    nfold = 5, cores = FALSE, verbose = TRUE, verbose.output = FALSE) {
-    if (verbose) {start.time = as.numeric(Sys.time())}
+HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
+                    lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
+                    verbose=TRUE, verbose_output=FALSE) {
+
+    if (verbose) start_time <- as.numeric(Sys.time())
     x <- as.matrix(x)
     y <- as.matrix(y)
-    number.of.features <- ncol(x)
-    number.of.samples <- nrow(x)
+    number_of_features <- ncol(x)
+    number_of_samples <- nrow(x)
 
-    if (missing(box.width)) {
-        box.width <- number.of.samples
-    }
-
+    if (missing(box_width)) box_width <- number_of_samples
+    if (cores == TRUE) cores <- detectCores()
     if (missing(bootstraps)) {
-        bootstraps <- ceiling(number.of.features / box.width) * 40
-    }
-
-    if (cores == TRUE) {
-        cores <- detectCores()
+        bootstraps <- ceiling(number_of_features / box_width) * 40
     }
 
     if (verbose) {
         cat("\nPart 1 of 2:\n")
-        pb <- txtProgressBar(min = 0, max = bootstraps, style = 3)
+        pb <- txtProgressBar(min=0, max=bootstraps, style=3)
     }
 
     .part1 <- function(ii, x, y, start_time) {
@@ -45,92 +44,98 @@ HiLasso <- function(x, y, bootstraps, alpha = c(0.5, 1), box.width, lambda.1se =
             .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
-        random.features <- sample(number.of.features, box.width, replace = FALSE)
-        random.samples <- sample(number.of.samples, replace = TRUE)
+        random_features <- sample(number_of_features, box_width, replace=FALSE)
+        random_samples <- sample(number_of_samples, replace=TRUE)
 
-        random.x <- x[random.samples, random.features]
-        random.y <- y[random.samples, ]
+        random_x <- x[random_samples, random_features]
+        random_y <- y[random_samples, ]
 
-        random.y.mean <- mean(random.y)
-        random.y.scaled <- random.y - random.y.mean
+        random_y_mean <- mean(random_y)
+        random_y_scaled <- random_y - random_y_mean
 
-        random.x.mean <- apply(random.x, 2, mean)
-        random.x.scaled <- scale(random.x, random.x.mean, FALSE)
-        standard.deviation <- sqrt(apply(random.x.scaled ^ 2, 2, sum))
-        random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
+        random_x_mean <- apply(random_x, 2, mean)
+        random_x_scaled <- scale(random_x, random_x_mean, FALSE)
+        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum))
+        random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
 
-        beta.hat <- replicate(number.of.features, 0)
-        beta.hat[random.features] <- Lasso(random.x.scaled,
-                                           random.y.scaled,
-                                           alpha[1],
-                                           nfold,
-                                           lambda.1se[1]) / standard.deviation
-        return(beta.hat)
+        beta_hat <- replicate(number_of_features, 0)
+        beta_hat[random_features] <- Lasso(random_x_scaled, random_y_scaled,
+                                           alpha[1], nfold,
+                                           lambda_1se[1]) / std_dev
+        return(beta_hat)
     }
 
     if (cores < 2) {
-        list.beta.hat <- lapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()))
+        list_beta_hat <- lapply(seq_len(bootstraps),
+                                .part1, x, y, as_numeric(Sys.time()))
     } else {
-        list.beta.hat <- mclapply(seq_len(bootstraps), .part1, x, y, as.numeric(Sys.time()), mc.cores = cores)
+        list_beta_hat <- mclapply(seq_len(bootstraps),
+                                  .part1, x, y, as.numeric(Sys.time()),
+                                  mc.cores=cores)
     }
 
-    importance.measure <- Reduce('+', lapply(list.beta.hat, abs)) + 10E-9
+    importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 10E-9
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
             .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
-        random.features <- sample(number.of.features, box.width, replace = FALSE,
-                                  prob = importance.measure)
-        random.samples <- sample(number.of.samples, replace = TRUE)
+        random_features <- sample(number_of_features, box_width,
+                                  replace=FALSE, prob=importance_measure)
+        random_samples <- sample(number_of_samples, replace=TRUE)
 
-        random.x <- x[random.samples, random.features]
-        random.y <- y[random.samples, ]
-        random.importance <- importance.measure[random.features]
+        random_x <- x[random_samples, random_features]
+        random_y <- y[random_samples, ]
+        random_importance <- importance_measure[random_features]
 
-        random.y.mean <- mean(random.y)
-        random.y.scaled <- random.y - random.y.mean
+        random_y_mean <- mean(random_y)
+        random_y_scaled <- random_y - random_y_mean
 
-        random.x.mean <- apply(random.x, 2, mean)
-        random.x.scaled <- scale(random.x, random.x.mean, FALSE)
-        standard.deviation <- sqrt(apply(random.x.scaled ^ 2, 2, sum))
-        random.x.scaled <- scale(random.x.scaled, FALSE, standard.deviation)
+        random_x_mean <- apply(random_x, 2, mean)
+        random_x_scaled <- scale(random_x, random_x_mean, FALSE)
+        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum))
+        random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
 
-        beta.hat <- replicate(number.of.features, 0)
-        beta.hat[random.features] <- AdaptiveLasso(random.x.scaled,
-                                                   random.y.scaled,
+        beta_hat <- replicate(number_of_features, 0)
+        beta_hat[random_features] <- AdaptiveLasso(random_x_scaled,
+                                                   random_y_scaled,
                                                    alpha[2],
-                                                   random.importance,
+                                                   random_importance,
                                                    nfold,
-                                                   lambda.1se[2]) / standard.deviation
-        return(beta.hat)
+                                                   lambda_1se[2]) / std_dev
+        return(beta_hat)
     }
 
     if (verbose) {
         cat("\nPart 2 of 2:\n")
-        pb <- txtProgressBar(min = 0, max = bootstraps, style = 3)
+        pb <- txtProgressBar(min=0, max=bootstraps, style=3)
     }
 
     if (cores < 2) {
-        list.beta.hat <- lapply(seq_len(bootstraps), .part2, x, y, as.numeric(Sys.time()))
+        list_beta_hat <- lapply(seq_len(bootstraps),
+                                .part2, x, y, as.numeric(Sys.time()))
     } else {
-        list.beta.hat <- mclapply(seq_len(bootstraps), .part2, x, y, as.numeric(Sys.time()), mc.cores = cores)
+        list_beta_hat <- mclapply(seq_len(bootstraps),
+                                  .part2, x, y, as.numeric(Sys.time()),
+                                  mc.cores=cores)
     }
 
     if (verbose) {
         cat("\n[Done]\n")
-        print(Sys.time() - start.time)
+        print(Sys.time() - start_time)
         close(pb)
     }
 
-    reduced.beta.hat <- Reduce('+', list.beta.hat) / bootstraps
-    reduced.beta.hat <- matrix(reduced.beta.hat, nrow = number.of.features, ncol = 1)
-    rownames(reduced.beta.hat) <- colnames(x)
-    colnames(reduced.beta.hat) <- "Coefficients"
-    if (verbose.output) {
-        return(list(beta.hat = reduced.beta.hat,
-                    importance.measure = importance.measure))
+    reduced_beta_hat <- Reduce('+', list_beta_hat) / bootstraps
+    reduced_beta_hat <- matrix(reduced_beta_hat,
+                               nrow=number_of_features,
+                               ncol=1)
+    rownames(reduced_beta_hat) <- colnames(x)
+    colnames(reduced_beta_hat) <- "Coefficients"
+    if (verbose_output) {
+        return(list(beta_hat = reduced_beta_hat,
+                    importance_measure = importance_measure))
     }
-    return(reduced.beta.hat)
+    return(reduced_beta_hat)
 }
