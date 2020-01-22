@@ -6,15 +6,17 @@ Date: 2019-06-21
 Authors@R: c(
     person("James", "Hamilton", email="jamesmatthewhamilton@icloud.com", role="cre"), 
     person("Mingon", "Kang", email="mkang9@kennesaw.edu", role="ctb"))
-Description: Library provides an array of Random Lasso like functions with tuning parameters. Random Lasso runs with an independent and dependent input.
+Description: Library provides an array of functions for Randomized Regression
+    Analysis (RRA), which are potent tools for linear model feature selection.
+    This concept was first introduced by Sijian Wang et.al. Random Lasso (2011).
+    This package provides tools for Random Lasso, as well latter and
+    state-of-the-art adaptations such as Hi-Lasso (2019).
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: FALSE
 Imports:
     glmnet,
     parallel
-Enhances:
-    sparklyr
 Collate:
     helper.time.R
     helper.regression.R
@@ -30,5 +32,6 @@ Collate:
     HiLassoVPURE.R
     HiLassoLessRand.R
     HiLassoAdaptive2.R
+    zzz.R
 biocViews:
     Regression

@@ -1,15 +1,16 @@
-#' Performs variable selection and regularization using Random Lasso.
+#' Performs variable selection and regularization using Hi Lasso.
 #'
 #' @param x Matrix of independent data.
 #' @param y Matrix or vector of dependent data.
 #' @param bootstraps Number of times features are randomly sampled.
 #' @param alpha Regression method, e.g. ridge=0, elastic=0.5, lasso=1.
-#' @param lambda_1se Largest value of lambda such that error is within 1 standard error of the minimum.
+#' @param lambda_1se Largest value of lambda such that error is within 1
+#'    standard error of the minimum.
 #' @param box_width Number of features sampled when randomly sampling.
 #' @param nfold Number of folds tested to find the optimal hyperparameter.
-#' @param core Cores used when running in parallel. 
-#' @param verbose Supresses all printing and time estimatation.
-#' @param verbose_output Returns additional information as list.
+#' @param core Number of cores used when running in parallel.
+#' @param verbose Supresses all printing and time estimation.
+#' @param verbose_output Returns additional information.
 #' @keywords
 #' @author James Matthew Hamilton
 #' @export
