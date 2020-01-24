@@ -19,7 +19,8 @@ RMSE2 <- function(ground.truth, beta.hat){
     sqrt(mean((ground.truth - beta.hat)^2))
 }
 
-RunAccuracyTest <- function(s, dir, title, tests, iterations = 10, column.names) {
+RunAccuracyTest <- function(s, dir="", title="", tests, iterations = 10,
+                            column.names, save_files=TRUE) {
 
     cols = ncol(s$x[[1]])
     rows = nrow(s$x[[1]])
@@ -102,19 +103,21 @@ RunAccuracyTest <- function(s, dir, title, tests, iterations = 10, column.names)
         dor[iterations + 1,] <- mean(dor[1:iterations,])
     }
     
-    rows.cols <- paste0("[", rows, "x", cols, "]")
-    directory <- paste0(dir, "/", title, "[", rows, "x", cols, "]", format(Sys.time(), "%F_%H:%M"))
-    dir.create(directory)
+    if (save_files) {
+        rows.cols <- paste0("[", rows, "x", cols, "]")
+        directory <- paste0(dir, "/", title, "[", rows, "x", cols, "]", format(Sys.time(), "%F_%H:%M"))
+        dir.create(directory)
     
-    write.csv(x = coef.avg, paste0(directory, "/Averaged_Coefficients", rows.cols, ".csv"))
-    write.csv(x = rmse, paste0(directory, "/RMSE", rows.cols, ".csv"))
-    write.csv(x = rmseZ, paste0(directory, "/RMSE_Zero", rows.cols, ".csv"))
-    write.csv(x = rmse2, paste0(directory, "/RMSE_Pure", rows.cols, ".csv"))
-    write.csv(x = f1.b, paste0(directory, "/F1_Cutoff", rows.cols, ".csv"))
-    write.csv(x = f1.b.cutoff, paste0(directory, "/Best_Cutoff_Values", rows.cols, ".csv"))
-    write.csv(x = f1, paste0(directory, "/F1", rows.cols, ".csv"))
-    write.csv(x = f2, paste0(directory, "/F2", rows.cols, ".csv"))
-    write.csv(x = dor, paste0(directory, "/DOR", rows.cols, ".csv"))
+        write.csv(x = coef.avg, paste0(directory, "/Averaged_Coefficients", rows.cols, ".csv"))
+        write.csv(x = rmse, paste0(directory, "/RMSE", rows.cols, ".csv"))
+        write.csv(x = rmseZ, paste0(directory, "/RMSE_Zero", rows.cols, ".csv"))
+        write.csv(x = rmse2, paste0(directory, "/RMSE_Pure", rows.cols, ".csv"))
+        write.csv(x = f1.b, paste0(directory, "/F1_Cutoff", rows.cols, ".csv"))
+        write.csv(x = f1.b.cutoff, paste0(directory, "/Best_Cutoff_Values", rows.cols, ".csv"))
+        write.csv(x = f1, paste0(directory, "/F1", rows.cols, ".csv"))
+        write.csv(x = f2, paste0(directory, "/F2", rows.cols, ".csv"))
+        write.csv(x = dor, paste0(directory, "/DOR", rows.cols, ".csv"))
+    }
     
     return(list(rmse = rmse, rmse.Zero = rmse, rmse.pure = rmse2, f1 = f1, f1.best.cutoff = f1.b, best.cutoff.value = f1.b.cutoff, f2 = f2, dor = dor))
 }
