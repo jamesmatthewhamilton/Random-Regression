@@ -6,7 +6,8 @@
 #' @param alpha Regression method, e.g. ridge=0, elastic=0.5, lasso=1.
 #' @param lambda_1se Largest value of lambda such that error is within 1
 #'    standard error of the minimum.
-#' @param box_width Number of features sampled when randomly sampling.
+#' @param box_width Number of features sampled when randomly sampling. By
+#'     default box_width will be equal to the number of samples.
 #' @param nfold Number of folds tested to find the optimal hyperparameter.
 #' @param core Number of cores used when running in parallel.
 #' @param verbose Supresses all printing and time estimation.
@@ -23,14 +24,17 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
                     lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
                     verbose=TRUE, verbose_output=FALSE) {
 
-    if (verbose) start_time <- as.numeric(Sys.time())
+    if (verbose) start_time <- Sys.time()
     x <- as.matrix(x)
     y <- as.matrix(y)
     number_of_features <- ncol(x)
     number_of_samples <- nrow(x)
 
     if (missing(box_width)) box_width <- number_of_samples
-    if (cores == TRUE) cores <- detectCores()
+    if (cores == TRUE) {
+        cores <- detectCores()
+        cat(paste("[Detected", cores, "Cores]"))
+    }
     if (missing(bootstraps)) {
         bootstraps <- ceiling(number_of_features / box_width) * 40
     }
@@ -68,7 +72,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                .part1, x, y, as_numeric(Sys.time()))
+                                .part1, x, y, as.numeric(Sys.time()))
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
                                   .part1, x, y, as.numeric(Sys.time()),

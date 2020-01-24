@@ -5,20 +5,17 @@ library(RandomLasso)
 
 ITERATIONS = 10
 TESTS = 1
-CORES = 16
-COLNAMES = "SingleTest_Lambda_1se_Part2"
+CORES = TRUE
+COLNAMES = "SingleTest"
 
 source("../func/SimulateTestData.R")
-s <- SimulateTestData("../res/sim3_sig3_our.RData", TESTS, ITERATIONS)
+s <- SimulateTestData("../res/sim1_sig3_our.RData", TESTS, ITERATIONS)
 
 for (ii in 1:ITERATIONS) {
-    for(jj in 1:TESTS) {
-        s$coef[[jj]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]],
+        s$coef[[1]][,ii] <- HiLasso(s$x[[ii]], s$y[[ii]],
                                      alpha = c(0.5, 1),
-                                     lambda.1se = c(FALSE, TRUE),
                                      cores = CORES,
                                      verbose = FALSE)
-    }
 }
 
 source("../func/RunAccuracyTests.R")

@@ -26,9 +26,9 @@ RunAccuracyTest <- function(s, dir, title, tests, iterations = 10, column.names)
     coefficients = s$coef
 
     rmse <- rmseZ <- rmse2 <- f1 <- f2 <- dor <- TP <- FP <- FN <- TN <- TPR <- PPV <- f1.b <- f1.b.cutoff <-
-    matrix(data = 0, nrow = iterations + 1, ncol = TESTS)
+    matrix(data = 0, nrow = iterations + 1, ncol = tests)
 
-    coef.avg <- matrix(data = 0, nrow = nrow(coefficients[[1]]), ncol = TESTS)
+    coef.avg <- matrix(data = 0, nrow = nrow(coefficients[[1]]), ncol = tests)
     non.zero <- s$ground.truth != 0
 
     if (!is.na(column.names[1])) {
@@ -116,5 +116,5 @@ RunAccuracyTest <- function(s, dir, title, tests, iterations = 10, column.names)
     write.csv(x = f2, paste0(directory, "/F2", rows.cols, ".csv"))
     write.csv(x = dor, paste0(directory, "/DOR", rows.cols, ".csv"))
     
-    return(list(rmse = rmse, rmseZ = rmseZ, rmse.pure = rmse2, f1 = f1.b, f1.cutoff = f1.b.cutoff, f1.pure = f1, f2 = f2, dor = dor, directory = directory))
+    return(list(rmse = rmse, rmse.Zero = rmse, rmse.pure = rmse2, f1 = f1, f1.best.cutoff = f1.b, best.cutoff.value = f1.b.cutoff, f2 = f2, dor = dor))
 }
