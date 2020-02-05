@@ -110,14 +110,14 @@ RunAccuracyTest <- function(s, dir="", title="", tests, iterations = 10,
     
         write.csv(x = coef.avg, paste0(directory, "/Averaged_Coefficients", rows.cols, ".csv"))
         write.csv(x = rmse, paste0(directory, "/RMSE", rows.cols, ".csv"))
-        write.csv(x = rmseZ, paste0(directory, "/RMSE_Zero", rows.cols, ".csv"))
+        write.csv(x = rmseZ, paste0(directory, "/RMSE_No_Zero", rows.cols, ".csv"))
         write.csv(x = rmse2, paste0(directory, "/RMSE_Pure", rows.cols, ".csv"))
-        write.csv(x = f1.b, paste0(directory, "/F1_Cutoff", rows.cols, ".csv"))
-        write.csv(x = f1.b.cutoff, paste0(directory, "/Best_Cutoff_Values", rows.cols, ".csv"))
+        write.csv(x = f1.b, paste0(directory, "/F1_At_Best_Cutoff", rows.cols, ".csv"))
+        write.csv(x = f1.b.cutoff, paste0(directory, "/Best_Cutoff_Value", rows.cols, ".csv"))
         write.csv(x = f1, paste0(directory, "/F1", rows.cols, ".csv"))
         write.csv(x = f2, paste0(directory, "/F2", rows.cols, ".csv"))
         write.csv(x = dor, paste0(directory, "/DOR", rows.cols, ".csv"))
     }
     
-    return(list(rmse = rmse, rmse.Zero = rmse, rmse.pure = rmse2, f1 = f1, f1.best.cutoff = f1.b, best.cutoff.value = f1.b.cutoff, f2 = f2, dor = dor))
+    return(list(rmse = rmse, rmse.no.zeros = rmse, rmse.pure = rmse2, f1 = f1, f1.at.best.cutoff = f1.b, best.cutoff.value = f1.b.cutoff, f2 = f2, dor = dor))
 }
