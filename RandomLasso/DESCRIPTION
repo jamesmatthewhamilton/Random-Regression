@@ -35,3 +35,5 @@ Collate:
     zzz.R
 biocViews:
     Regression
+Suggests:
+    testthat

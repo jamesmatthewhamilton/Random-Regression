@@ -33,7 +33,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
     if (missing(box_width)) box_width <- number_of_samples
     if (cores == TRUE) {
         cores <- detectCores()
-        cat(paste("[Detected", cores, "Cores]"))
+        if (verbose) cat(paste("[Detected", cores, "Cores]"))
     }
     if (missing(bootstraps)) {
         bootstraps <- ceiling(number_of_features / box_width) * 40

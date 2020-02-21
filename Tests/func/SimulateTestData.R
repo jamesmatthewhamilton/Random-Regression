@@ -11,8 +11,6 @@ SimulateTestData <- function(dataset, tests, iterations = 10) {
         
         y[[ii]] <- matrix(unlist(sim_data[[ii]][2]), ncol = 1)
         x[[ii]] <- matrix(unlist(sim_data[[ii]][3]), ncol = n_feature, byrow = FALSE)
-        y.test[[ii]] <- matrix(unlist(sim_data[[ii]][4]), ncol = 1)
-        x.test[[ii]] <- matrix(unlist(sim_data[[ii]][5]), ncol = n_feature, byrow = FALSE)
         y.val[[ii]] <- matrix(unlist(sim_data[[ii]][6]), ncol = 1)
         x.val[[ii]] <- matrix(unlist(sim_data[[ii]][7]), ncol = n_feature, byrow = FALSE)
         cov.x[[ii]] <- matrix(unlist(sim_data[[ii]][8]), ncol = n_feature, byrow = FALSE)
@@ -24,8 +22,6 @@ SimulateTestData <- function(dataset, tests, iterations = 10) {
     return(list(coef = coef,
                 x = x,
                 y = y,
-                y.test = y.test,
-                x.test = x.test,
                 y.val = y.val,
                 x.val = x.val,
                 cov.x = cov_x,

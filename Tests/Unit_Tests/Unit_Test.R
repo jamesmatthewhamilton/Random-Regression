@@ -23,7 +23,24 @@ for (ff in 1:2) {
     r[[ff]] <- RunAccuracyTest(s, "", "", 1, ITERATIONS, "", FALSE)
 }
 
-check <-     read.csv("../res/Unit_Test.csv")
+check <- read.csv("../res/Unit_Test.csv")
+cat("Starting Unit Testing...\n")
+
 for (ff in 1:2) {
-    cat("Starting Unit Testing...\n")
+    if (r[[ff]]$rmse[length(r[[ff]]$rmse)] < (check[1,ff] * 1.07)) {
+        cat("[RMSE] pass\n")
+    } else {
+        cat(paste0("[RMSE] Failed (HIGH)", ff, ": ",
+            "\n\tExpected: ", check[1,ff],
+            " (ave)\t", check[1,ff] * 1.07, " (max)",
+            "\n\tRecieved: ", r[[ff]]$rmse[length(r[[ff]]$rmse)], "\n"))
+    }
+    if (r[[ff]]$f1[length(r[[ff]]$f1)] < (check[2,ff] * 1.1)) {
+        cat("[F1] pass\n")
+    } else {
+        cat(paste0("[F1] Failed [HIGH]", ff, ": ",
+                   "\n\tExpected: ", check[2,ff], " (ave)\t",
+                   check[2,ff] * 1.1, " (max)",
+                   "\n\tRecieved: ", r[[ff]]$f1[length(r[[ff]]$f1)], "\n"))
+    }
 }
