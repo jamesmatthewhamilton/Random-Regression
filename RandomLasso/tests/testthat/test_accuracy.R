@@ -6,15 +6,13 @@ RESULTS = list()
 source("../../../Tests/func/SimulateTestData.R")
 
 for (ff in 1:2) {
-    cat(paste0("Loading Simulated Dataset ", ff, "...\n"))
     load(paste0("../../data/sim", ff, ".RData"))
     coef <- list(matrix(0, nrow = ncol(x[[1]]), ncol = ITERATIONS))
 
+    cat(paste0("Running Hi-Lasso on Simulated Dataset ", ff, "...\n"))
     for (ii in 1:ITERATIONS) {
-        temp <- HiLasso(x[[ii]], y[[ii]],
-                        alpha = c(0.5, 1),
-                        cores = TRUE,
-                        verbose = FALSE)
+        temp <- HiLasso(x[[ii]], y[[ii]], alpha = c(0.5, 1),
+                        cores = TRUE, verbose = FALSE)
         coef[[1]][ ,ii] <- temp
     }
 
@@ -24,44 +22,43 @@ for (ff in 1:2) {
     RESULTS[[ff]] <- RunAccuracyTest(s, "", "", 1, ITERATIONS, "", FALSE)
 }
 
-expected_accuracy_location <- "../../data/expected_accuracy.RData"
-test_that("Binary for accuracy testing exists.", {
-    expect_true(file.exists(expected_accuracy_location))
+accuracy_file <- "../../data/expected_accuracy.RData"
+test_that("Binary file for accuracy testing exists.", {
+    expect_true(file.exists(accuracy_file))
 })
 
-load(expected_accuracy_location)
+load(accuracy_file)
+
 test_that("CSV row-2 column-4 should equal 0.742846772795382.", {
     expect_equal(expected_accuracy[4,2], 0.742846772795382)
 })
 
-cat("Starting Accuracy Unit Testing...\n")
-
+cat("Starting RMSE/F1 Unit Testing...\n")
 for (ff in 1:2) {
-    test_that(paste0("RMSE within 7% of expectation. [Simulation", ff, "]"), {
-        T1 = RESULTS[[ff]]$rmse[length(RESULTS[[ff]]$rmse)] < (expected_accuracy[ff, 1] * 1.07)
-        expect_true(T1)
-        if (T1) {
-            cat("[RMSE] pass\n")
-        } else {
-            cat(paste0("[RMSE] Failed (HIGH)", ff, ": ",
-                       "\n\tExpected: ", expected_accuracy[ff, 1],
-                       " (ave)\t", expected_accuracy[ff, 1] * 1.07, " (max)",
-                       "\n\tRecieved: ",
-                       RESULTS[[ff]]$rmse[length(RESULTS[[ff]]$rmse)], "\n"))
-        }
-    })
 
-    test_that(paste0("F1 within 11% of expectation. [Simulation", ff, "]"), {
-        T2 = RESULTS[[ff]]$f1[length(RESULTS[[ff]]$f1)] < (expected_accuracy[ff, 2] * 1.1)
-        expect_true(T2)
-        if (RESULTS[[ff]]$f1[length(RESULTS[[ff]]$f1)] < (expected_accuracy[ff, 2] * 1.1)) {
-            cat("[F1] pass\n")
-        } else {
-            cat(paste0("[F1] Failed [HIGH]", ff, ": ",
-                       "\n\tExpected: ", expected_accuracy[ff, 2], " (ave)\t",
-                       expected_accuracy[ff, 2] * 1.1, " (max)",
-                       "\n\tRecieved: ",
-                       RESULTS[[ff]]$f1[length(RESULTS[[ff]]$f1)], "\n"))
-        }
-    })
+    # Insuring the RMSE does not deviate too far from past averages.
+    rmse_result = RESULTS[[ff]]$rmse[length(RESULTS[[ff]]$rmse)]
+    cat(paste0("RMSE [Sim", ff, "]: ",
+               "\n\tExpected: ", expected_accuracy[ff, 1],
+               "\n\tRecieved: ", rmse_result, "\n"))
+
+    for (tt in seq(1.15, 1.03, by = -0.01)) {
+        T1 = rmse_result < (expected_accuracy[ff, 1] * tt)
+        test_that(paste0("RMSE less than ", tt, "% of expected. [Sim", ff, "]"), {
+            expect_true(T1)
+        })
+    }
+
+    # Insuring the F1 does not deviate too far from past averages.
+    f1_result = RESULTS[[ff]]$f1[length(RESULTS[[ff]]$f1)]
+    cat(paste0("F1 [sim", ff, "]: ",
+               "\n\tExpected: ", expected_accuracy[ff, 2],
+               "\n\tRecieved: ", f1_result, "\n"))
+
+    for (tt in seq(1.15, 1.03, by = -0.01)) {
+        T1 = f1_result < (expected_accuracy[ff, 2] * tt)
+        test_that(paste0("F1 less than ", tt,"% of expected. [Sim", ff, "]"), {
+            expect_true(T1)
+        })
+    }
 }
