@@ -16,12 +16,12 @@ rownames(benchmark) <- sims
 # Run regression function on the same data over-and-over.
 for (ss in 1:length(sims)) {
     cat(paste0("-------- Benchmarking ", sims[ss], " ---------\n"))
-    load(paste0("data/sim/", sims[ss], "_1.RData"))
+    load(paste0("data/simulated/", sims[ss], "_1.RData"))
     for (ii in 1:tcount) {
         cat(paste0("Running Hi-Lasso [", ii, " of ", tcount, "]...\n"))
         start_time <- Sys.time()
         coef <- HiLasso(x=x, y=y, cores=TRUE, verbose=FALSE)
-        time[[ii]] <- as.numeric(Sys.time() - start_time)
+        time[[ii]] <- as.numeric(Sys.time() - start_time, unit="secs")
         rmse[[ii]] <- findRMSE(beta_hat=coef, x_val=x_val, y_val=y_val)
         f1[[ii]] <- findF1(beta_hat=coef, ground_truth=beta0)
     }
