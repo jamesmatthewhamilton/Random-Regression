@@ -1,8 +1,6 @@
 .DS_Store
-*.RData
 *.Rhistory
-Tests/res/Emory/
+*.Rbuildignore
+*.Rproj.user
 \#*
 *~
-.Rproj.*
-.Rproj.user
