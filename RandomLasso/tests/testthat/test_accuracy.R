@@ -2,58 +2,53 @@ context("Hi-Lasso Accuracy Test\n")
 source("../helper/f1.R")
 source("../helper/rmse.R")
 
-tcout <- 3
 sims <- c("sim1", "sim2", "sim3", "sim4")
+count_of_tests <- length(sims)
 
-# Insuring that file with expected RMSE/F1 exists.
 accuracy_file <- "../../data/benchmark/benchmark.RData"
 test_that("Binary file for accuracy testing exists.", {
   expect_true(file.exists(accuracy_file))
 })
-
-# Checking the integrity of the file with expected RMSE/F1.
 load(accuracy_file)
-test_that("CSV row-4 column-2 should equal 4.42590435433364", {
+
+test_that("Dataframe row-4 column-2 should equal 4.42590435433364", {
   expect_equal(as.character(benchmark[4,2]), "4.42590435433364")
 })
 
-for (ss in 1:length(sims)) {
-    load(paste0("../../data/simulated/", sims[ss], "_1.RData"))
-    cat(paste0("Running Hi-Lasso on Simulated Dataset ", sims[ss], " set 1...\n"))
-
-    #coef <- mapply(HiLasso, x=x, y=y, MoreArgs=(list(alpha = c(0.5, 1))),
-    #               cores=TRUE, verbose=FALSE)
-    #coef <- split(coef, rep(1:ncol(coef), each=nrow(coef)))
-
+results <-sapply(sims, function(sims) {
+    load(paste0("../../data/simulated/", sims, "_1.RData"))
+    cat(paste0("Running Hi-Lasso on Simulated Dataset ", sims, "\n"))
     coef <- HiLasso(x=x, y=y, alpha = c(0.5, 1), cores=TRUE, verbose=FALSE)
+    rmse <- findRMSE(beta_hat=coef, x_val=x_val, y_val=y_val)
+    f1 <- findF1(beta_hat=coef, ground_truth=beta0)
+    return(c(rmse, f1))
+})
 
-    #rmse <- mapply(findRMSE, beta_hat=coef, x_val=x_val, y_val=y_val)
-    #mean_rmse <- mean(rmse)
-    #f1 <- mapply(findF1, beta_hat=coef, MoreArgs=(list(ground_truth=beta0)))
-    #mean_f1 <- mean(f1)
+rmse <- results[1, ]
+f1 <- results[2, ]
 
-    mean_rmse <- findRMSE(beta_hat=coef, x_val=x_val, y_val=y_val)
-    mean_f1 <- findF1(beta_hat=coef, ground_truth=beta0)
+rmse_benchmark <- benchmark[1:count_of_tests, 2]
+rmse_benchmark_sd <- benchmark[1:count_of_tests, 5]
 
-    # Insuring the RMSE does not deviate too far from past averages.
-    cat(paste0("RMSE [", sims[ss], "]: ",
-               "\n\tExpected: ", benchmark[ss, 2],
-               "\n\tRecieved: ", mean_rmse, "\n"))
+f1_benchmark <- benchmark[1:count_of_tests, 2]
+f1_benchmark_sd <- benchmark[1:count_of_tests, 5]
 
-    for (tt in seq(1.15, 1.03, by = -0.01)) {
-        test_that(paste0("RMSE less than ", tt, "% of expected. [", sims[ss], "]"), {
-            expect_true(mean_rmse < (benchmark[ss, 2] * tt))
-        })
-    }
-
-    # Insuring the F1 does not deviate too far from past averages.
-    cat(paste0("F1 [", sims[ss], "]: ",
-               "\n\tExpected: ", benchmark[ss, 3],
-               "\n\tRecieved: ", mean_f1, "\n"))
-
-    for (tt in seq(1.15, 1.03, by = -0.01)) {
-        test_that(paste0("F1 less than ", tt,"% of expected. [Sim", sims[ss], "]"), {
-            expect_true(mean_f1 < (benchmark[ss, 3] * tt))
-        })
-    }
+validateRMSE <- function(sims, rmse, rmse_benchmark, rmse_benchmark_sd) {
+    cat(paste0("RMSE [", sims, "]: ",
+               "\n\tExpected: ", rmse_benchmark,
+               "\n\tRecieved: ", rmse, "\n"))
+    test_that(paste0("RMSE less than 3 sd's from expected. [", sims, "]"), {
+        expect_true(rmse < (rmse_benchmark + (3 * rmse_benchmark_sd)))
+    })
 }
+mapply(validateRMSE, sims, rmse, rmse_benchmark, rmse_benchmark_sd)
+
+validateF1 <- function(sims, f1, f1_benchmark, f1_benchmark_sd) {
+  cat(paste0("F1 [", sims, "]: ",
+             "\n\tExpected: ", f1_benchmark,
+             "\n\tRecieved: ", f1, "\n"))
+  test_that(paste0("F1 less than 3 sd's from expected. [", sims, "]"), {
+    expect_true(f1 < (f1_benchmark + (3 * f1_benchmark_sd)))
+  })
+}
+mapply(validateF1, sims, f1, f1_benchmark, f1_benchmark_sd)
