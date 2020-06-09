@@ -30,14 +30,14 @@ f1 <- results[2, ]
 rmse_benchmark <- benchmark[1:count_of_tests, 2]
 rmse_benchmark_sd <- benchmark[1:count_of_tests, 5]
 
-f1_benchmark <- benchmark[1:count_of_tests, 2]
-f1_benchmark_sd <- benchmark[1:count_of_tests, 5]
+f1_benchmark <- benchmark[1:count_of_tests, 3]
+f1_benchmark_sd <- benchmark[1:count_of_tests, 6]
 
 validateRMSE <- function(sims, rmse, rmse_benchmark, rmse_benchmark_sd) {
     cat(paste0("RMSE [", sims, "]: ",
                "\n\tExpected: ", rmse_benchmark,
                "\n\tRecieved: ", rmse, "\n"))
-    test_that(paste0("RMSE less than 3 sd's from expected. [", sims, "]"), {
+    test_that(paste0("RMSE is 3 sd's from expected. [", sims, "]"), {
         expect_true(rmse < (rmse_benchmark + (3 * rmse_benchmark_sd)))
     })
 }
@@ -47,8 +47,8 @@ validateF1 <- function(sims, f1, f1_benchmark, f1_benchmark_sd) {
   cat(paste0("F1 [", sims, "]: ",
              "\n\tExpected: ", f1_benchmark,
              "\n\tRecieved: ", f1, "\n"))
-  test_that(paste0("F1 less than 3 sd's from expected. [", sims, "]"), {
-    expect_true(f1 < (f1_benchmark + (3 * f1_benchmark_sd)))
+  test_that(paste0("F1 is 3 sd's from expected. [", sims, "]"), {
+    expect_true(f1 > (f1_benchmark - (3 * f1_benchmark_sd)))
   })
 }
 mapply(validateF1, sims, f1, f1_benchmark, f1_benchmark_sd)

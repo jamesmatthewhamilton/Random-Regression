@@ -30,8 +30,8 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
     number_of_features <- ncol(x)
     number_of_samples <- nrow(x)
 
-    if(all(is.na(x) == FALSE)) cat("Error: NA values detected in x.\n")
-    if(all(is.na(y) == FALSE)) cat("Error: NA values detected in y.\n")
+    if(!all(is.na(x) == FALSE)) cat("Error: NA values detected in x.\n")
+    if(!all(is.na(y) == FALSE)) cat("Error: NA values detected in y.\n")
 
     if (missing(box_width)) box_width <- number_of_samples
     if (cores == TRUE) {
@@ -63,20 +63,8 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
         random_x_mean <- apply(random_x, 2, mean)
         random_x_scaled <- scale(random_x, random_x_mean, FALSE)
-        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum))
-        if (!all(std_dev != 0)) {
-            cat("Warning: A feature has a standard deviation of zero.\n")
-        }
-        #random_x_scaled <- mapply(function(y, z) (y / z ^ as.logical(z)),
-        #                          random_x_scaled, std_dev)
+        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum)) + 5e-324
         random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
-
-        if(all(!is.na(random_x_scaled) == FALSE)) {
-            cat("Error: NA values detected in scaled x.\n")
-        }
-        if(all(!is.na(random_y_scaled) == FALSE)) {
-            cat("Error: NA values detected in scaled y.\n")
-        }
 
         beta_hat <- replicate(number_of_features, 0)
         beta_hat[random_features] <- Lasso(random_x_scaled, random_y_scaled,
@@ -93,8 +81,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
                                   .part1, x, y, as.numeric(Sys.time()),
                                   mc.cores=cores)
     }
-
-    importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 10E-9
+    importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 5e-324
 
     .part2 <- function(ii, x, y, start_time) {
         if (verbose) {
@@ -114,20 +101,8 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
         random_x_mean <- apply(random_x, 2, mean)
         random_x_scaled <- scale(random_x, random_x_mean, FALSE)
-        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum))
-        if (!all(std_dev != 0)) {
-            cat("Warning: A feature has a standard deviation of zero.\n")
-        }
-        #random_x_scaled <- mapply(function(y, z) (y / z ^ as.logical(z)),
-        #                          random_x_scaled, std_dev)
+        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum)) + 5e-324
         random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
-
-        if(all(!is.na(random_x_scaled) == FALSE)) {
-            cat("Error: NA values detected in scaled x.\n")
-        }
-        if(all(!is.na(random_y_scaled) == FALSE)) {
-            cat("Error: NA values detected in scaled y.\n")
-        }
 
         beta_hat <- replicate(number_of_features, 0)
         beta_hat[random_features] <- AdaptiveLasso(random_x_scaled,
