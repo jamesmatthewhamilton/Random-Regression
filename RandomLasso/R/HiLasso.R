@@ -23,23 +23,24 @@
 HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
                     lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
                     verbose=TRUE, verbose_output=FALSE) {
-
+    message("Starting Random Lasso...")
     if (verbose) start_time <- Sys.time()
     x <- as.matrix(x)
     y <- as.matrix(y)
-    number_of_features <- ncol(x)
-    number_of_samples <- nrow(x)
+    n_features <- ncol(x)
+    n_samples <- nrow(x)
+    pb = NULL
 
     if(!all(is.na(x) == FALSE)) cat("Error: NA values detected in x.\n")
     if(!all(is.na(y) == FALSE)) cat("Error: NA values detected in y.\n")
 
-    if (missing(box_width)) box_width <- number_of_samples
+    if (missing(box_width)) box_width <- n_samples
     if (cores == TRUE) {
         cores <- detectCores()
         if (verbose) cat(paste("[Detected", cores, "Cores]"))
     }
     if (missing(bootstraps)) {
-        bootstraps <- ceiling(number_of_features / box_width) * 40
+        bootstraps <- ceiling(n_features / box_width) * 40
     }
 
     if (verbose) {
@@ -47,38 +48,12 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
         pb <- txtProgressBar(min=0, max=bootstraps, style=3)
     }
 
-    .part1 <- function(ii, x, y, start_time) {
-        if (verbose) {
-            .continue.progress.bar(pb, start_time, ii, bootstraps)
-        }
-
-        random_features <- sample(number_of_features, box_width, replace=FALSE)
-        random_samples <- sample(number_of_samples, replace=TRUE)
-
-        random_x <- x[random_samples, random_features]
-        random_y <- y[random_samples, ]
-
-        random_y_mean <- mean(random_y)
-        random_y_scaled <- random_y - random_y_mean
-
-        random_x_mean <- apply(random_x, 2, mean)
-        random_x_scaled <- scale(random_x, random_x_mean, FALSE)
-        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum)) + 5e-324
-        random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
-
-        beta_hat <- replicate(number_of_features, 0)
-        beta_hat[random_features] <- Lasso(random_x_scaled, random_y_scaled,
-                                           alpha[1], nfold,
-                                           lambda_1se[1]) / std_dev
-        return(beta_hat)
-    }
-
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                .part1, x, y, as.numeric(Sys.time()))
+                                randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  .part1, x, y, as.numeric(Sys.time()),
+                                  randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose,
                                   mc.cores=cores)
     }
     importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 5e-324
@@ -88,9 +63,9 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
             .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
-        random_features <- sample(number_of_features, box_width,
+        random_features <- sample(n_features, box_width,
                                   replace=FALSE, prob=importance_measure)
-        random_samples <- sample(number_of_samples, replace=TRUE)
+        random_samples <- sample(n_samples, replace=TRUE)
 
         random_x <- x[random_samples, random_features]
         random_y <- y[random_samples, ]
@@ -104,7 +79,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
         std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum)) + 5e-324
         random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
 
-        beta_hat <- replicate(number_of_features, 0)
+        beta_hat <- replicate(n_features, 0)
         beta_hat[random_features] <- AdaptiveLasso(random_x_scaled,
                                                    random_y_scaled,
                                                    alpha[2],
@@ -121,10 +96,10 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                .part2, x, y, as.numeric(Sys.time()))
+                                randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  .part2, x, y, as.numeric(Sys.time()),
+                                  randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose,
                                   mc.cores=cores)
     }
 
@@ -136,7 +111,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
     reduced_beta_hat <- Reduce('+', list_beta_hat) / bootstraps
     reduced_beta_hat <- matrix(reduced_beta_hat,
-                               nrow=number_of_features,
+                               nrow=n_features,
                                ncol=1)
     rownames(reduced_beta_hat) <- colnames(x)
     colnames(reduced_beta_hat) <- "Coefficients"
