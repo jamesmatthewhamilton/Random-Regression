@@ -6,8 +6,8 @@
 #' @param alpha Regression method, e.g. ridge=0, elastic=0.5, lasso=1.
 #' @param lambda_1se Largest value of lambda such that error is within 1
 #'    standard error of the minimum.
-#' @param box_width Number of features sampled when randomly sampling. By
-#'    default box_width will be equal to the number of samples.
+#' @param sample_size Number of features sampled when randomly sampling. By
+#'    default sample_size will be equal to the number of samples.
 #' @param nfold Number of folds tested to find the optimal hyperparameter.
 #' @param cores Number of cores used when running in parallel.
 #' @param verbose Supresses all printing and time estimation.
@@ -20,7 +20,7 @@
 #' RandomLasso(x, y, verbose=FALSE, bootstraps=300)
 #'
 
-HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
+HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
                     lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
                     verbose=TRUE, verbose_output=FALSE) {
     message("Starting Random Lasso...")
@@ -34,13 +34,13 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
     if(!all(is.na(x) == FALSE)) cat("Error: NA values detected in x.\n")
     if(!all(is.na(y) == FALSE)) cat("Error: NA values detected in y.\n")
 
-    if (missing(box_width)) box_width <- n_samples
+    if (missing(sample_size)) sample_size <- n_samples
     if (cores == TRUE) {
         cores <- detectCores()
         if (verbose) cat(paste("[Detected", cores, "Cores]"))
     }
     if (missing(bootstraps)) {
-        bootstraps <- ceiling(n_features / box_width) * 40
+        bootstraps <- ceiling(n_features / sample_size) * 40
     }
 
     if (verbose) {
@@ -50,10 +50,10 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose)
+                                generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose,
+                                  generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose,
                                   mc.cores=cores)
     }
     importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 5e-324
@@ -63,7 +63,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
             .continue.progress.bar(pb, start_time, ii, bootstraps)
         }
 
-        random_features <- sample(n_features, box_width,
+        random_features <- sample(n_features, sample_size,
                                   replace=FALSE, prob=importance_measure)
         random_samples <- sample(n_samples, replace=TRUE)
 
@@ -96,10 +96,10 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), box_width,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose)
+                                generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  randomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, box_width, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose,
+                                  generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose,
                                   mc.cores=cores)
     }
 
