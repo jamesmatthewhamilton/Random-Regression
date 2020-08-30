@@ -2,5 +2,7 @@
 *.Rhistory
 *.Rbuildignore
 *.Rproj.user
+*.Rcheck
+Tests
 \#*
 *~
