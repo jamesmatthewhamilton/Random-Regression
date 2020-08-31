@@ -23,90 +23,122 @@
 HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
                     lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
                     verbose=TRUE, verbose_output=FALSE) {
-    message("Starting Random Lasso...")
-    if (verbose) start_time <- Sys.time()
+
+    if (verbose) func_start_time <- Sys.time()
+    if (verbose) message("Starting Hi-Lasso Algorithm...")
+
+    ## ---------------- Setting Variables | START ----------------
     x <- as.matrix(x)
     y <- as.matrix(y)
     n_features <- ncol(x)
     n_samples <- nrow(x)
-    pb = NULL
-
-    if(!all(is.na(x) == FALSE)) cat("Error: NA values detected in x.\n")
-    if(!all(is.na(y) == FALSE)) cat("Error: NA values detected in y.\n")
 
     if (missing(sample_size)) sample_size <- n_samples
     if (cores == TRUE) {
         cores <- detectCores()
-        if (verbose) cat(paste("[Detected", cores, "Cores]"))
+        if (verbose) message("Using auto-detected ", cores, " cores.")
     }
     if (missing(bootstraps)) {
         bootstraps <- ceiling(n_features / sample_size) * 40
+        if (verbose) message("Setting bootstraps to ", bootstraps, ".")
     }
+    ## ---------------- Setting Variables | END ----------------
+
+    ## ---------------- Checking Inputs | START ----------------
+    if(!all(is.na(x) == FALSE)) stop("Error: NA values detected in x.\n")
+    if(!all(is.na(y) == FALSE)) stop("Error: NA values detected in y.\n")
+    ## ---------------- Checking Inputs | END ----------------
+
+    pb = NULL
+    start_time = NULL
 
     if (verbose) {
         cat("\nPart 1 of 2:\n")
-        pb <- txtProgressBar(min=0, max=bootstraps, style=3)
+        if(!cores) {
+            pb <- txtProgressBar(min=0, max=bootstraps, style=3)
+            start_time = as.numeric(Sys.time())
+        }
     }
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose)
+                                generateRandomBootstrap,
+                                x,
+                                y,
+                                pb,
+                                start_time,
+                                bootstraps,
+                                sample_size,
+                                alpha[1],
+                                nfold,
+                                lambda_1se[1],
+                                NULL,
+                                method="Regression",
+                                verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[1], nfold, lambda_1se[1], NULL, method="Regression", verbose,
-                                  mc.cores=cores)
+                                generateRandomBootstrap,
+                                x,
+                                y,
+                                pb,
+                                start_time,
+                                bootstraps,
+                                sample_size,
+                                alpha[1],
+                                nfold,
+                                lambda_1se[1],
+                                NULL,
+                                method="Regression",
+                                verbose,
+                                mc.cores=cores)
     }
     importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 5e-324
 
-    .part2 <- function(ii, x, y, start_time) {
-        if (verbose) {
-            .continue.progress.bar(pb, start_time, ii, bootstraps)
-        }
-
-        random_features <- sample(n_features, sample_size,
-                                  replace=FALSE, prob=importance_measure)
-        random_samples <- sample(n_samples, replace=TRUE)
-
-        random_x <- x[random_samples, random_features]
-        random_y <- y[random_samples, ]
-        random_importance <- importance_measure[random_features]
-
-        random_y_mean <- mean(random_y)
-        random_y_scaled <- random_y - random_y_mean
-
-        random_x_mean <- apply(random_x, 2, mean)
-        random_x_scaled <- scale(random_x, random_x_mean, FALSE)
-        std_dev <- sqrt(apply(random_x_scaled ^ 2, 2, sum)) + 5e-324
-        random_x_scaled <- scale(random_x_scaled, FALSE, std_dev)
-
-        beta_hat <- replicate(n_features, 0)
-        beta_hat[random_features] <- AdaptiveLasso(random_x_scaled,
-                                                   random_y_scaled,
-                                                   alpha[2],
-                                                   random_importance,
-                                                   nfold,
-                                                   lambda_1se[2]) / std_dev
-        return(beta_hat)
-    }
-
     if (verbose) {
         cat("\nPart 2 of 2:\n")
-        pb <- txtProgressBar(min=0, max=bootstraps, style=3)
+        if (!cores) {
+            pb <- txtProgressBar(min=0, max=bootstraps, style=3)
+            start_time = as.numeric(Sys.time())
+        }
     }
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose)
+                                generateRandomBootstrap,
+                                x,
+                                y,
+                                pb,
+                                start_time,
+                                bootstraps,
+                                sample_size,
+                                alpha[2],
+                                nfold,
+                                lambda_1se[2],
+                                importance_measure,
+                                method="Adaptive",
+                                verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                  generateRandomBootstrap, x, y, pb, as.numeric(Sys.time()), bootstraps, sample_size, alpha[2], nfold, lambda_1se[2], importance_measure, method="Adaptive", verbose,
-                                  mc.cores=cores)
+                                generateRandomBootstrap,
+                                x,
+                                y,
+                                pb,
+                                start_time,
+                                bootstraps,
+                                sample_size,
+                                alpha[2],
+                                nfold,
+                                lambda_1se[2],
+                                importance_measure,
+                                method="Adaptive",
+                                verbose,
+                                mc.cores=cores)
     }
 
     if (verbose) {
         cat("\n[Done]\n")
-        print(Sys.time() - start_time)
-        close(pb)
+        print(Sys.time() - func_start_time)
+        if (!cores) close(pb)
     }
 
     reduced_beta_hat <- Reduce('+', list_beta_hat) / bootstraps

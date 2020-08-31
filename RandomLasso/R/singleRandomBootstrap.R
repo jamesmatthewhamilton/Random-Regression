@@ -1,11 +1,40 @@
-generateRandomBootstrap <- function(ii, X, y, pb, start_time, bootstraps, sample_size, alpha, nfold, lambda_1se, importance_measure=NULL, method="Regression", verbose) {
-    if (verbose) {
-        .continue.progress.bar(pb, start_time, ii, bootstraps)
+generateRandomBootstrap <- function(ii, X, y,
+                                    pb,
+                                    start_time,
+                                    bootstraps,
+                                    sample_size,
+                                    alpha=1,
+                                    nfold=5,
+                                    lambda_1se=FALSE,
+                                    importance_measure=NULL,
+                                    method="Regression",
+                                    verbose=FALSE)
+{
+    ## Progress bar pre-check.
+    if (is.null(pb) != is.null(start_time)) {
+        warning("Both pb and start_time must be test to use the progress bar.",
+                " Forcing pb=NULL and start_time=NULL.")
+        pb=NULL
+        start_time=NULL
     }
+
+    ## Progress bar utility.
+    if (!is.null(pb) && !is.null(start_time)) {
+        if (verbose) {
+            .continue.progress.bar(pb, start_time, ii, bootstraps)
+        }
+    }
+
     n_features <- ncol(X)
     n_samples <- nrow(X)
 
-    random_sample <- sampleRegressionData(X, y, sample_size, importance_measure=importance_measure)
+    if (missing(sample_size)) sample_size <- n_samples
+    if (missing(bootstraps)) {
+        bootstraps <- ceiling(n_features / sample_size) * 40
+    }
+
+    random_sample <- sampleRegressionData(X, y, sample_size,
+                                          importance_measure=importance_measure)
 
     random_y_mean <- mean(random_sample$y)
     random_y_scaled <- random_sample$y - random_y_mean

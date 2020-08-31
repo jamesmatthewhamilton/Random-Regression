@@ -32,7 +32,7 @@ Collate:
     HiLassoVPURE.R
     HiLassoLessRand.R
     HiLassoAdaptive2.R
-    generateRandomBootstrap.R
+    singleRandomBootstrap.R
     sampleRegressionData.R
     zzz.R
 biocViews:
