@@ -1,21 +1,21 @@
-generateRandomBootstrap <- function(ii, X, y,
-                                    pb,
-                                    start_time,
-                                    bootstraps,
-                                    sample_size,
-                                    alpha=1,
-                                    nfold=5,
-                                    lambda_1se=FALSE,
-                                    importance_measure=NULL,
-                                    method="Regression",
-                                    verbose=FALSE)
+singleRandomBootstrap <- function(ii, X, y,
+                                  pb,
+                                  start_time,
+                                  bootstraps,
+                                  sample_size,
+                                  alpha=1,
+                                  nfold=5,
+                                  lambda_1se=FALSE,
+                                  importance_measure=NULL,
+                                  method="Regression",
+                                  verbose=FALSE)
 {
     ## Progress bar pre-check.
     if (is.null(pb) != is.null(start_time)) {
         warning("Both pb and start_time must be test to use the progress bar.",
                 " Forcing pb=NULL and start_time=NULL.")
-        pb=NULL
-        start_time=NULL
+        pb = NULL
+        start_time = NULL
     }
 
     ## Progress bar utility.
@@ -33,7 +33,8 @@ generateRandomBootstrap <- function(ii, X, y,
         bootstraps <- ceiling(n_features / sample_size) * 40
     }
 
-    random_sample <- sampleRegressionData(X, y, sample_size,
+    random_sample <- sampleRegressionData(X, y,
+                                          sample_size,
                                           importance_measure=importance_measure)
 
     random_y_mean <- mean(random_sample$y)
@@ -48,20 +49,24 @@ generateRandomBootstrap <- function(ii, X, y,
 
     if (method == "Regression") {
         beta_hat[random_sample$feature_idx] <- Lasso(random_X_scaled,
-                                           random_y_scaled,
-                                           alpha,
-                                           nfold,
-                                           lambda_1se) / std_dev
+                                                     random_y_scaled,
+                                                     alpha,
+                                                     nfold,
+                                                     lambda_1se)
+        beta_hat[random_sample$feature_idx] <-
+            beta_hat[random_sample$feature_idx] / std_dev
     }
     else if (method == "Adaptive") {
         random_importance <- importance_measure[random_sample$feature_idx]
 
         beta_hat[random_sample$feature_idx] <- AdaptiveLasso(random_X_scaled,
-                                                   random_y_scaled,
-                                                   alpha,
-                                                   random_importance,
-                                                   nfold,
-                                                   lambda_1se) / std_dev
+                                                             random_y_scaled,
+                                                             alpha,
+                                                             random_importance,
+                                                             nfold,
+                                                             lambda_1se)
+        beta_hat[random_sample$feature_idx] <-
+            beta_hat[random_sample$feature_idx] / std_dev
     }
     return(beta_hat)
 }

@@ -18,6 +18,7 @@ sampleRegressionData <- function(X, y, sample_size, importance_measure=NULL) {
                                  y=random_y,
                                  feature_idx=random_feature_idx,
                                  sample_idx=random_sample_idx)
+
     class(sampleRegressionData) <- "sampleRegressionData"
 
     return(sampleRegressionData)

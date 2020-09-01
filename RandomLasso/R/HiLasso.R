@@ -20,15 +20,21 @@
 #' RandomLasso(x, y, verbose=FALSE, bootstraps=300)
 #'
 
-HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
-                    lambda_1se=c(FALSE, FALSE), nfold=5, cores=FALSE,
-                    verbose=TRUE, verbose_output=FALSE) {
+HiLasso <- function(x, y,
+                    bootstraps,
+                    alpha=c(0.5, 1),
+                    sample_size,
+                    lambda_1se=c(FALSE, FALSE),
+                    nfold=5,
+                    cores=FALSE,
+                    verbose=TRUE,
+                    verbose_output=FALSE) {
 
     if (verbose) func_start_time <- Sys.time()
     if (verbose) message("Starting Hi-Lasso Algorithm...")
 
     ## ---------------- Setting Variables | START ----------------
-    x <- as.matrix(x)
+    x <- as.matrix(x)  # TODO remove
     y <- as.matrix(y)
     n_features <- ncol(x)
     n_samples <- nrow(x)
@@ -62,7 +68,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                generateRandomBootstrap,
+                                singleRandomBootstrap,
                                 x,
                                 y,
                                 pb,
@@ -77,7 +83,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
                                 verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                generateRandomBootstrap,
+                                singleRandomBootstrap,
                                 x,
                                 y,
                                 pb,
@@ -104,7 +110,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
 
     if (cores < 2) {
         list_beta_hat <- lapply(seq_len(bootstraps),
-                                generateRandomBootstrap,
+                                singleRandomBootstrap,
                                 x,
                                 y,
                                 pb,
@@ -119,7 +125,7 @@ HiLasso <- function(x, y, bootstraps, alpha=c(0.5, 1), sample_size,
                                 verbose)
     } else {
         list_beta_hat <- mclapply(seq_len(bootstraps),
-                                generateRandomBootstrap,
+                                singleRandomBootstrap,
                                 x,
                                 y,
                                 pb,

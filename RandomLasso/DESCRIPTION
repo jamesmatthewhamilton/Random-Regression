@@ -18,22 +18,12 @@ Imports:
     glmnet,
     parallel
 Collate:
-    helper.time.R
-    helper.regression.R
-    RandomLasso.R
-    ParallelRandomLasso.R
-    RapidRandomLasso.R
-    SteppedRandomLasso.R
     HiLasso.R
-    HiLassoDS.R
-    HiLassoC.R
-    HiLassoTRI.R
-    HiLassoPURE.R
-    HiLassoVPURE.R
-    HiLassoLessRand.R
-    HiLassoAdaptive2.R
+    RandomLasso.R
     singleRandomBootstrap.R
     sampleRegressionData.R
+    helperTime.R
+    helperRegression.R
     zzz.R
 biocViews:
     Regression
