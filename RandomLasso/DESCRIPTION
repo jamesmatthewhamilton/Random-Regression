@@ -23,6 +23,7 @@ Collate:
     multipleRandomBootstraps.R
     singleRandomBootstrap.R
     sampleRegressionData.R
+    standardizationFunctions.R
     helperTime.R
     helperRegression.R
     zzz.R
