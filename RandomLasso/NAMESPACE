@@ -6,5 +6,6 @@ export(sampleRegressionData)
 export(hiLassoStandardizationMethod)
 importFrom('glmnet', 'cv.glmnet')
 importFrom('glmnet', 'glmnet')
-importFrom('parallel', 'mclapply')
+importFrom('parallel', 'mclapply')  # Depreciating
+importFrom('parallel', 'mcmapply')
 importFrom('parallel', 'detectCores')

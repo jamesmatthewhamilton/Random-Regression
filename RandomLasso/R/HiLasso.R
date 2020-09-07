@@ -26,6 +26,7 @@ HiLasso <- function(x, y,
                     sample_size,
                     lambda_1se=c(FALSE, FALSE),
                     nfold=5,
+                    seed=1,
                     cores=FALSE,
                     verbose=TRUE,
                     verbose_output=FALSE) {
@@ -34,12 +35,13 @@ HiLasso <- function(x, y,
     if (verbose) message("Starting Hi-Lasso Algorithm...")
 
     ## ---------------- Setting Variables | START ----------------
-    x <- as.matrix(x)  # TODO remove
+    x <- as.matrix(x)  # TODO Remove
     y <- as.matrix(y)
     n_features <- ncol(x)
     n_samples <- nrow(x)
 
     if (missing(sample_size)) sample_size <- n_samples
+
     if (cores == TRUE) {
         cores <- detectCores()
         if (verbose) message("Using auto-detected ", cores, " cores.")
@@ -59,42 +61,44 @@ HiLasso <- function(x, y,
         cat("\nPart 1 of 2:\n")
     }
 
-    list_beta_hat <- multipleRandomBootstraps(x, y,
-                                              start_time,
-                                              bootstraps,
-                                              sample_size,
-                                              alpha[1],
-                                              nfold,
-                                              lambda_1se[1],
-                                              NULL,
+    list_beta_hat <- multipleRandomBootstraps(X=x, y=y,
+                                              start_time=Sys.time(),
+                                              bootstraps=bootstraps,
+                                              sample_size=sample_size,
+                                              alpha=alpha[1],
+                                              nfold=nfold,
+                                              lambda_1se=lambda_1se[1],
+                                              importance_measure=NULL,
                                               method="Regression",
+                                              seed=seed,
                                               cores=cores,
-                                              verbose)
+                                              verbose=verbose)
 
-    importance_measure <- Reduce('+', lapply(list_beta_hat, abs)) + 5e-324
+    importance_measure <- rowSums(abs(list_beta_hat)) + 5e-324
 
     if (verbose) {
         cat("\nPart 2 of 2:\n")
     }
 
-    list_beta_hat <- multipleRandomBootstraps(x, y,
-                                              start_time,
-                                              bootstraps,
-                                              sample_size,
-                                              alpha[2],
-                                              nfold,
-                                              lambda_1se[2],
-                                              importance_measure,
+    list_beta_hat <- multipleRandomBootstraps(X=x, y=y,
+                                              start_time=Sys.time(),
+                                              bootstraps=bootstraps,
+                                              sample_size=sample_size,
+                                              alpha=alpha[2],
+                                              nfold=nfold,
+                                              lambda_1se=lambda_1se[2],
+                                              importance_measure=importance_measure,
                                               method="Adaptive",
+                                              seed=seed,
                                               cores=cores,
-                                              verbose)
+                                              verbose=verbose)
 
     if (verbose) {
         cat("\n[Done]\n")
         print(Sys.time() - func_start_time)
     }
 
-    reduced_beta_hat <- Reduce('+', list_beta_hat) / bootstraps
+    reduced_beta_hat <- rowSums(list_beta_hat) / bootstraps
     reduced_beta_hat <- matrix(reduced_beta_hat,
                                nrow=n_features,
                                ncol=1)
