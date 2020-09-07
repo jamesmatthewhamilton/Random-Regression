@@ -26,7 +26,7 @@ HiLasso <- function(x, y,
                     sample_size,
                     lambda_1se=c(FALSE, FALSE),
                     nfold=5,
-                    seed=1,
+                    seed,
                     cores=FALSE,
                     verbose=TRUE,
                     verbose_output=FALSE) {
@@ -61,18 +61,20 @@ HiLasso <- function(x, y,
         cat("\nPart 1 of 2:\n")
     }
 
-    list_beta_hat <- multipleRandomBootstraps(X=x, y=y,
-                                              start_time=Sys.time(),
-                                              bootstraps=bootstraps,
-                                              sample_size=sample_size,
-                                              alpha=alpha[1],
-                                              nfold=nfold,
-                                              lambda_1se=lambda_1se[1],
-                                              importance_measure=NULL,
-                                              method="Regression",
-                                              seed=seed,
-                                              cores=cores,
-                                              verbose=verbose)
+    args <- list(X=x, y=y,
+                 start_time=Sys.time(),
+                 bootstraps=bootstraps,
+                 sample_size=sample_size,
+                 alpha=alpha[1],
+                 nfold=nfold,
+                 lambda_1se=lambda_1se[1],
+                 importance_measure=NULL,
+                 method="Regression",
+                 cores=cores,
+                 verbose=verbose)
+    if (!missing(seed)) args <- do.call(c, list(args, list(seed=seed)))
+
+    list_beta_hat <- do.call("multipleRandomBootstraps", args)
 
     importance_measure <- rowSums(abs(list_beta_hat)) + 5e-324
 
@@ -80,18 +82,13 @@ HiLasso <- function(x, y,
         cat("\nPart 2 of 2:\n")
     }
 
-    list_beta_hat <- multipleRandomBootstraps(X=x, y=y,
-                                              start_time=Sys.time(),
-                                              bootstraps=bootstraps,
-                                              sample_size=sample_size,
-                                              alpha=alpha[2],
-                                              nfold=nfold,
-                                              lambda_1se=lambda_1se[2],
-                                              importance_measure=importance_measure,
-                                              method="Adaptive",
-                                              seed=seed,
-                                              cores=cores,
-                                              verbose=verbose)
+    args$start_time = Sys.time()
+    args$alpha = alpha[2]
+    args$importance_measure = importance_measure
+    args$lambda_1se = lambda_1se[2]
+    args$method = "Adaptive"
+
+    list_beta_hat <- do.call("multipleRandomBootstraps", args)
 
     if (verbose) {
         cat("\n[Done]\n")
