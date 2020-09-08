@@ -9,3 +9,5 @@ importFrom('glmnet', 'glmnet')
 importFrom('parallel', 'mclapply')  # Depreciating
 importFrom('parallel', 'mcmapply')
 importFrom('parallel', 'detectCores')
+importFrom('BiocParallel', 'bpmapply')
+importFrom('BiocParallel', 'MulticoreParam')

@@ -8,13 +8,12 @@ singleRandomBootstrap <- function(ii, X, y,
                                   lambda_1se=FALSE,
                                   importance_measure=NULL,
                                   method="Regression",
-                                  seed,
                                   verbose=FALSE)
 {
 
     ## Progress bar pre-check.
     if (is.null(pb) != is.null(start_time)) {
-        warning("Both pb and start_time must be test to use the progress bar.",
+        warning("Both pb and start_time must be set to use the progress bar.",
                 " Forcing pb=NULL and start_time=NULL.")
         pb = NULL
         start_time = NULL
@@ -37,8 +36,7 @@ singleRandomBootstrap <- function(ii, X, y,
 
     random_sample <- sampleRegressionData(X, y,
                                           sample_size,
-                                          importance_measure=importance_measure,
-                                          seed=seed)
+                                          importance_measure=importance_measure)
 
     scaled_random_sample <- hiLassoStandardizationMethod(random_sample$X,
                                                          random_sample$y)

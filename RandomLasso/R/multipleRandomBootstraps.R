@@ -8,16 +8,11 @@ multipleRandomBootstraps <- function(X, y,
                                      importance_measure=NULL,
                                      method="Regression",
                                      seed,
-                                     cores=FALSE,
+                                     cores=TRUE,
                                      verbose=FALSE)
 {
 
-    if (!missing(seed)) {
-        if (verbose) message("Setting seed=", seed, ".")
-        set.seed(seed)
-        list_of_seeds <- sample.int(10000000, bootstraps)
-    }
-    if (!cores) {
+    if (!cores && verbose) {
         pb <- txtProgressBar(min=0, max=bootstraps, style=3)
         start_time <- as.numeric(Sys.time())
     } else {
@@ -27,7 +22,6 @@ multipleRandomBootstraps <- function(X, y,
 
     args <- list(FUN=singleRandomBootstrap,
                  ii=seq_len(bootstraps),
-                 seed=list_of_seeds,
                  MoreArgs = list(
                      X=X,
                      y=y,
@@ -42,11 +36,20 @@ multipleRandomBootstraps <- function(X, y,
                      method=method,
                      verbose=verbose))
 
-    if (!cores) {
-        list_beta_hat <- do.call("mapply", args)
+    if (cores) {
+        bp_args <- list()
+        if (!missing(cores)) {
+            bp_args <- do.call(c, list(bp_args, list(workers=cores)))
+        }
+        if (!missing(seed)) {
+            bp_args <- do.call(c, list(bp_args, list(RNGseed=seed)))
+        }
+        param <- MulticoreParam(progressbar=verbose, tasks=bootstraps)
+        args <- do.call(c, list(args, list(BPPARAM=param)))
+
+        list_beta_hat <- do.call("bpmapply", args)
     } else {
-        args <- do.call(c, list(args, list(mc.cores=cores)))
-        list_beta_hat <- do.call("mcmapply", args)
+        list_beta_hat <- do.call("mapply", args)
     }
 
     return(list_beta_hat)

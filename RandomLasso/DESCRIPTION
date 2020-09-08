@@ -1,7 +1,7 @@
 Package: RandomLasso
 Type: Package
 Title: A library of Random Lasso flavored functions for regression analysis.
-Version: 0.2.1
+Version: 0.3.1
 Date: 2019-06-21
 Authors@R: c(
     person("James", "Hamilton", email="jamesmatthewhamilton@icloud.com", role="cre"), 
@@ -14,9 +14,12 @@ Description: Library provides an array of functions for Randomized Regression
 License: Artistic-2.0
 Encoding: UTF-8
 LazyData: FALSE
+biocViews:
+    Regression
 Imports:
     glmnet,
-    parallel
+    parallel,
+    BiocParallel
 Collate:
     HiLasso.R
     RandomLasso.R
@@ -27,7 +30,5 @@ Collate:
     helperTime.R
     helperRegression.R
     zzz.R
-biocViews:
-    Regression
 Suggests:
     testthat

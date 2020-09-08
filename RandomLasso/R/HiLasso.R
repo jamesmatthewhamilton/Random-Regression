@@ -27,7 +27,7 @@ HiLasso <- function(x, y,
                     lambda_1se=c(FALSE, FALSE),
                     nfold=5,
                     seed,
-                    cores=FALSE,
+                    cores=TRUE,
                     verbose=TRUE,
                     verbose_output=FALSE) {
 
