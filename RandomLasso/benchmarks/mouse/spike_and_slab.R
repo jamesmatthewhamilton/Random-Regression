@@ -5,6 +5,7 @@ if("RandomLasso" %in% (.packages())){detach("package:RandomLasso", unload = TRUE
 install.packages("../../../RandomLasso/", repos = NULL, type = "source")
 library(RandomLasso)
 library(glmnet)
+#library(hal9001)
 
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -12,88 +13,164 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("GEOquery")
 library("GEOquery")
 
-#library("readr")  # problems().
+get_benchmark_results <- function(coef, x_train, y_train, x_test, y_test) {
 
-gse <- getGEO(filename = "../../data/rat/GSE5680_series_matrix.txt.gz", GSEMatrix = TRUE)
-X = t(exprs(object = gse))
+    features_selected <- sum(coef != 0)
 
-response_index <- which(colnames(X)=="1389163_at")  #Trim32
-X = X[, -response_index]
-y = X[, response_index]
+    prediction <- as.matrix(apply(t(apply(x_train, 1, function(l) {l * coef})), 1, sum))
+    train_rme <- sum((prediction - y_train)^2) / nrow(x_test)
 
-n_features <- ncol(X)
-n_samples <- nrow(X)
+    prediction <- as.matrix(apply(t(apply(x_test, 1, function(l) {l * coef})), 1, sum))
+    test_rme <- sum((prediction - y_test)^2) / nrow(x_test)
+
+    return(list(features_selected=features_selected,
+                train_rme=train_rme,
+                test_rme=test_rme))
+}
+
+get_pretty_benchmark_algo_names <- function(benchmark_algorithms) {
+
+    pretty_names <- lapply(benchmark_algorithms, function(x) class(x)[1])
+
+    for (ii in seq(1, length(pretty_names))) {
+        if (pretty_names[ii] == "Glmnet") {
+            pretty_names[ii] = paste0(pretty_names[ii], " (alpha=",
+                                      benchmark_algorithms[[ii]]@alpha, ")")
+        }
+    }
+    return(pretty_names)
+}
+# Test classes.
+setClass(
+    "Glmnet",
+    slots = list(alpha = "numeric",
+                 nfold = "numeric"),
+    prototype = list(alpha = 0, nfold = 5)
+)
+
+
+setClass(
+    "HiLasso",
+    slots = list(
+        alpha = "numeric",
+        nfold = "numeric",
+        cores = "numeric"
+    ),
+    prototype = list(
+        alpha = c(0.5, 1),
+        nfold = 5,
+        cores = 1
+    )
+)
+
+# Global Params
+title = "Spike_and_Slab"
+benchmark_algorithms <- list(new("Glmnet", alpha = 0),
+                             new("Glmnet", alpha = 1),
+                             new("HiLasso")) # TODO make object.
+reps <- 20
+training_samples_frac <- 3/4
+seed = 100
+set.seed(seed)
+
+
+# ------ START DATA IMPORT ------
+gse <- getGEO(filename = "../../data/mouse/GSE5680_series_matrix.txt.gz", GSEMatrix = TRUE)
+data <- t(exprs(object = gse))
+
+response_index <- which(colnames(data)=="1389163_at")  #Trim32
+X <- data[, -response_index]
+y <- data[, response_index]
+# ------ END DATA IMPORT ------
+
+
+# ------ START PREPROCESSING ------
+
+X <- X[,which(colnames(X) %in%
+              names(sort(apply(X, 2, var),
+                         decreasing = TRUE)[1:10000]))]
 
 X <- apply(X, 2, scale)
 y.mean <- mean(y)
 y <- y - y.mean
 
-#write.csv(x = x, file = "GSE2553.expression.matrix.csv", quote = F, row.names = F) #export expression matrix in file (.csv format).
+n_features <- ncol(X)
+n_samples <- nrow(X)
+n_training_samples <- (n_samples * training_samples_frac)
+n_benchmark_algorithms <- length(benchmark_algorithms)
 
-#row.names(X)[order(apply(X, 1, var), decreasing = TRUE)][1:10]
-#sort(apply(X, 1, var), decreasing = TRUE)[1:10000]
+# ------ END PREPROCESSING ------
 
-set.seed(100)
 
-title = "Spike_and_Slab_Paper_Replication"
-reps <- 2
-n_training_samples <- 90
+# ------ START RESULTS INIT ------
+benchmark_metrics <- list("Features_Selected", "Training_RME", "Testing_RME")
+n_benchmark_metrics <- length(benchmark_metrics)
 
-lasso_coef <- matrix(0, nrow = reps, ncol = n_features)
-colnames(lasso_coef) <- colnames(X)
-#lasso_pred_train <- matrix(0, nrow = reps, ncol = n_training_samples)
-#lasso_pred_test <- matrix(0, nrow = reps, ncol = n_samples - n_training_samples)
+benchmark_results <- lapply(seq_len(reps), function(X) {
+    matrix <- matrix(1, nrow = n_benchmark_metrics, ncol = n_benchmark_algorithms);
+    rownames(matrix) <- benchmark_metrics;
+    colnames(matrix) <- get_pretty_benchmark_algo_names(benchmark_algorithms);
+    matrix;
+    })
 
-hlasso_coef <- matrix(0, nrow = reps, ncol = n_features)
-colnames(hlasso_coef) <- colnames(X)
-#hlasso_pred_train <- matrix(0, nrow = reps, ncol = n_training_samples)
-#hlasso_pred_test <- matrix(0, nrow = reps, ncol = n_samples - n_training_samples)
+coef_results <- lapply(seq_len(reps), function(x) {
+    matrix <- matrix(1, nrow = n_features, ncol = n_benchmark_algorithms);
+    rownames(matrix) <- colnames(X);
+        colnames(matrix) <- get_pretty_benchmark_algo_names(benchmark_algorithms);
+        matrix;
+    })
+# ------ START RESULTS INIT ------
 
-benchmark <- data.frame("LassoTrainingMSPM" = numeric(reps),
-                      "LassoTestingMSPM" = numeric(reps),
-                      "LassoFeaturesSelected" = numeric(reps),
-                      "HiLassoTrainingMSPM" = numeric(reps),
-                      "HiLassoTestingMSPM" = numeric(reps),
-                      "HiLassoFeaturesSelected" = numeric(reps))
 
-for (ii in 1:reps) {
+# ------ START RESULTS BENCHMARK ------
 
-    # Generate Samples
-    index <-  sample(1:nrow(X), n_training_samples)
-    x_train <- X[index,] # Create the training data
-    x_test <- X[-index,] # Create the test data
-    y_train <- y[index] # Create the training data
-    y_test <- y[-index] # Create the test data
+for (ii in seq(1, reps)) {
+    for (jj in seq(1, n_benchmark_algorithms)) {
 
-    # Benchmarking Lasso
-    lasso_cv <- cv.glmnet(x_train, y_train,
-                          nfold = 5, alpha = 1,
-                          standardize = TRUE,
-                          intercept = TRUE)
+        index <-  sample(1:nrow(X), n_training_samples)
+        x_train <- X[index,]  # Create the training data
+        x_test <- X[-index,]  # Create the test data
+        y_train <- y[index]  # Create the training data
+        y_test <- y[-index]  # Create the test data
 
-    lasso_coef[ii,] <- coef(lasso_cv, s=lasso_cv$lambda.min, exact=TRUE)[-1]
-    benchmark$LassoFeaturesSelected[ii] <- sum(lasso_coef[ii,] != 0)
+        if (class(benchmark_algorithms[[jj]])[1] == "Glmnet") {
+            lasso_cv <- cv.glmnet(x_train, y_train,
+                                  nfold = benchmark_algorithms[[jj]]@nfold,
+                                  alpha = benchmark_algorithms[[jj]]@alpha,
+                                  standardize = TRUE,
+                                  intercept = TRUE)
 
-    lasso_pred_train <- predict(lasso_cv, s = lasso_cv$lambda.min, newx = x_train)
-    benchmark$LassoTrainingMSPM[ii] <- sum((lasso_pred_train - y_train)^2) / nrow(x_train)
-    lasso_pred_test <- predict(lasso_cv, s = lasso_cv$lambda.min, newx = x_test)
-    benchmark$LassoTestingMSPM[ii] <- sum((lasso_pred_test - y_test)^2) / nrow(x_test)
-
-    # Benchmarking Hi-Lasso
-    hlasso_coef[ii,] <- HiLasso(x_train, y_train, cores = TRUE)
-    benchmark$HiLassoFeaturesSelected[ii] <- sum(hlasso_coef[ii,] != 0)
-
-    hlasso_pred_train <- as.matrix(apply(t(apply(x_train, 1, function(l) {l * hlasso_coef[ii,]})), 1, sum))
-    benchmark$HiLassoTrainingMSPM[ii] <- sum((hlasso_pred_train - y_train)^2) / nrow(x_train)
-    hlasso_pred_test <- as.matrix(apply(t(apply(x_test, 1, function(l) {l * hlasso_coef[ii,]})), 1, sum))
-    benchmark$HiLassoTestingMSPM[ii] <- sum((hlasso_pred_test - y_test)^2) / nrow(x_test)
-
-    print(benchmark)
+            coef_results[[ii]][, jj] <-
+                coef(lasso_cv, s = lasso_cv$lambda.min, exact = TRUE)[-1]
+            benchmark_results[[ii]][, jj] <-
+                unlist(get_benchmark_results(coef_results[[ii]][, jj],
+                                             x_train, y_train,
+                                             x_test, y_test))
+        }
+        else if (class(benchmark_algorithms[[jj]])[1] == "HiLasso") {
+            coef_results[[ii]][, jj] <-
+                HiLasso(x_train, y_train,
+                        alpha = benchmark_algorithms[[jj]]@alpha,
+                        nfold = benchmark_algorithms[[jj]]@nfold,
+                        cores = benchmark_algorithms[[jj]]@cores)
+            benchmark_results[[ii]][, jj] <-
+                unlist(get_benchmark_results(coef_results[[ii]][, jj],
+                                             x_train, y_train,
+                                             x_test, y_test))
+        }
+        else if  (class(benchmark_algorithms[[jj]])[1] == "HAL") {
+            coef_results[[ii]][, jj] <- fit_hal(X = x_train, Y = y_train)
+            benchmark_results[[ii]][, jj] <-
+                unlist(get_benchmark_results(coef_results[[ii]][, jj],
+                                             x_train, y_train,
+                                             x_test, y_test))
+        }
+    }
+    print(benchmark_results)
 }
 
-filename <- paste0(title, "[", n_samples, "x", n_features, "]", format(Sys.time(), "%F_%H:%M"))
+filename <- paste0(title, "[", n_samples, "x", n_features, "]", format(Sys.time(), "%F_%H-%M"))
 
-write.table(lasso_coef, file=paste0(filename, "_", "lasso_coef", "_", ".csv"))
-write.table(hlasso_coef, file=paste0(filename, "_", "hlasso_coef", "_", ".csv"))
-write.table(benchmark, file=paste0(filename, "_", "benchmark", "_", ".csv"))
-
+save(benchmark_algorithms, coef_results, benchmark_results, file=paste0(filename, ".RData"))
+write.csv(coef_results[[1]], file=paste0(filename, "_", "coefficients", ".csv"))
+write.csv(Reduce("+", benchmark_results) / reps, file=paste0(filename, "_", "benchmark", ".csv"))
