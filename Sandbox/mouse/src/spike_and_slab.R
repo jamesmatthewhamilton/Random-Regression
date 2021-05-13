@@ -63,12 +63,16 @@ setClass(
     )
 )
 
+
+
+
+
 # Global Params
 title = "Spike_and_Slab"
 benchmark_algorithms <- list(new("Glmnet", alpha = 0),
                              new("Glmnet", alpha = 1),
                              new("HiLasso")) # TODO make object.
-reps <- 20
+reps <- 50
 training_samples_frac <- 3/4
 seed = 100
 set.seed(seed)
@@ -88,7 +92,7 @@ y <- data[, response_index]
 
 X <- X[,which(colnames(X) %in%
               names(sort(apply(X, 2, var),
-                         decreasing = TRUE)[1:10000]))]
+                         decreasing = TRUE)[1:15000]))]
 
 X <- apply(X, 2, scale)
 y.mean <- mean(y)
@@ -165,7 +169,18 @@ for (ii in seq(1, reps)) {
                                              x_train, y_train,
                                              x_test, y_test))
         }
+        if (class(benchmark_algorithms[[jj]])[1] == "OLS") {
+            ols_object <- lm(y_train ~ . -1,
+                             data = data.frame(y_train, x_train))
+
+            coef_results[[ii]][, jj] <- ols_object$coefficients[-1]
+            benchmark_results[[ii]][, jj] <-
+                unlist(get_benchmark_results(coef_results[[ii]][, jj],
+                                             x_train, y_train,
+                                             x_test, y_test))
+        }
     }
+    save(benchmark_algorithms, coef_results, benchmark_results, file="benchmark_backup.RData")
     print(benchmark_results)
 }
 
@@ -174,3 +189,5 @@ filename <- paste0(title, "[", n_samples, "x", n_features, "]", format(Sys.time(
 save(benchmark_algorithms, coef_results, benchmark_results, file=paste0(filename, ".RData"))
 write.csv(coef_results[[1]], file=paste0(filename, "_", "coefficients", ".csv"))
 write.csv(Reduce("+", benchmark_results) / reps, file=paste0(filename, "_", "benchmark", ".csv"))
+#apply(simplify2array(benchmark_results), 1:2, median)
+# write.csv(apply(simplify2array(coef_results), 1:2, mean), file=paste0(filename, "_", "mean_coefficients", ".csv"))

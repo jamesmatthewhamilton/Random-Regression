@@ -1,11 +1,11 @@
 context("Hi-Lasso Accuracy Test\n")
-source("../helper/f1.R")
-source("../helper/rmse.R")
+source("../common/f1.R")
+source("../common/rmse.R")
 
 sims <- c("sim1", "sim2", "sim3", "sim4")
 count_of_tests <- length(sims)
 
-accuracy_file <- "../../data/benchmark/benchmark.RData"
+accuracy_file <- "../benchmark/benchmark.RData"
 test_that("Binary file for accuracy testing exists.", {
   expect_true(file.exists(accuracy_file))
 })
@@ -15,7 +15,7 @@ test_that("Dataframe row-4 column-2 should equal 4.42590435433364", {
   expect_equal(as.character(benchmark[4,2]), "4.42590435433364")
 })
 
-results <-sapply(sims, function(sims) {
+results <- sapply(sims, function(sims) {
     load(paste0("../../data/simulated/", sims, "_1.RData"))
     cat(paste0("Running Hi-Lasso on Simulated Dataset ", sims, "\n"))
     coef <- HiLasso(x=x, y=y, alpha = c(0.5, 1), cores=TRUE, verbose=FALSE)
