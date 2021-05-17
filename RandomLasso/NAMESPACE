@@ -1,3 +1,4 @@
+exportClasses(RandomSampling)
 export(HiLasso)
 export(RandomLasso)
 export(multipleRandomBootstraps)
@@ -11,3 +12,4 @@ importFrom('parallel', 'mcmapply')
 importFrom('parallel', 'detectCores')
 importFrom('BiocParallel', 'bpmapply')
 importFrom('BiocParallel', 'MulticoreParam')
+

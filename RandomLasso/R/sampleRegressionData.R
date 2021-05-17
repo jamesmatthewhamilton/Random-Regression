@@ -1,7 +1,7 @@
 sampleRegressionData <- function(X, y, sample_size,
                                  importance_measure=NULL) {
 
-    n_features <- ncol(X)
+    n_features <- ncol(X)  #TODO: How to remove this without incr complexity.
     n_samples <- nrow(X)
 
     if (sample_size > n_features) {
@@ -16,12 +16,14 @@ sampleRegressionData <- function(X, y, sample_size,
     random_X <- X[random_sample_idx, random_feature_idx]
     random_y <- y[random_sample_idx, ]
 
-    sampleRegressionData <- list(X=random_X,
-                                 y=random_y,
-                                 feature_idx=random_feature_idx,
-                                 sample_idx=random_sample_idx)
-
-    class(sampleRegressionData) <- "sampleRegressionData"
-
-    return(sampleRegressionData)
+    return(
+        new("RandomSampling",
+            method="SubsetFeaturesMixSamplesWithDups",
+            x=random_X,  #TODO: Possibly unnecessary copy.
+            y=random_y,
+            features_sampled=random_feature_idx,
+            observations_sampled=random_sample_idx,
+            feature_weight=importance_measure
+        )
+    )
 }

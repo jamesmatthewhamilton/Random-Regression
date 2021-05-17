@@ -23,6 +23,7 @@ Imports:
 Collate:
     HiLasso.R
     RandomLasso.R
+    allClasses.R
     multipleRandomBootstraps.R
     singleRandomBootstrap.R
     sampleRegressionData.R

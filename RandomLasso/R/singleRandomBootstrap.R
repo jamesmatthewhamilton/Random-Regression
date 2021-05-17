@@ -38,31 +38,35 @@ singleRandomBootstrap <- function(ii, X, y,
                                           sample_size,
                                           importance_measure=importance_measure)
 
-    scaled_random_sample <- hiLassoStandardizationMethod(random_sample$X,
-                                                         random_sample$y)
+    scaled_random_sample <- hiLassoStandardizationMethod(random_sample@x,
+                                                         random_sample@y)
 
     beta_hat <- replicate(n_features, 0)
 
     if (method == "Regression") {
-        beta_hat[random_sample$feature_idx] <- Lasso(scaled_random_sample$X,
-                                                     scaled_random_sample$y,
-                                                     alpha,
-                                                     nfold,
-                                                     lambda_1se)
+        beta_hat[random_sample@features_sampled] <-
+            Lasso(scaled_random_sample$X,
+                  scaled_random_sample$y,
+                  alpha,
+                  nfold,
+                  lambda_1se)
     }
     else if (method == "Adaptive") {
-        random_importance <- importance_measure[random_sample$feature_idx]
+        random_importance <- importance_measure[random_sample@features_sampled]
 
-        beta_hat[random_sample$feature_idx] <- AdaptiveLasso(scaled_random_sample$X,
-                                                             scaled_random_sample$y,
-                                                             alpha,
-                                                             random_importance,
-                                                             nfold,
-                                                             lambda_1se)
+        beta_hat[random_sample@features_sampled] <-
+            AdaptiveLasso(
+                scaled_random_sample$X,
+                scaled_random_sample$y,
+                alpha,
+                random_importance,
+                nfold,
+                lambda_1se
+            )
     }
 
-    beta_hat[random_sample$feature_idx] <-
-        beta_hat[random_sample$feature_idx] / scaled_random_sample$y_std_dev
+    beta_hat[random_sample@features_sampled] <-
+        beta_hat[random_sample@features_sampled] / scaled_random_sample$y_std_dev
 
     return(beta_hat)
 }

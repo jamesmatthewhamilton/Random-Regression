@@ -74,9 +74,9 @@ HiLasso <- function(x, y,
                  verbose=verbose)
     if (!missing(seed)) args <- do.call(c, list(args, list(seed=seed)))
 
-    list_beta_hat <- do.call("multipleRandomBootstraps", args)
+    bootstrap_coef_matrix_part_1 <- do.call("multipleRandomBootstraps", args)
 
-    importance_measure <- rowSums(abs(list_beta_hat)) + 5e-324
+    importance_measure <- rowSums(abs(bootstrap_coef_matrix_part_1)) + 5e-324
 
     if (verbose) {
         cat("\nPart 2 of 2:\n")
@@ -88,14 +88,14 @@ HiLasso <- function(x, y,
     args$lambda_1se = lambda_1se[2]
     args$method = "Adaptive"
 
-    list_beta_hat <- do.call("multipleRandomBootstraps", args)
+    bootstrap_coef_matrix_part_2 <- do.call("multipleRandomBootstraps", args)
 
     if (verbose) {
         cat("\n[Done]\n")
         print(Sys.time() - func_start_time)
     }
 
-    reduced_beta_hat <- rowSums(list_beta_hat) / bootstraps
+    reduced_beta_hat <- rowSums(bootstrap_coef_matrix_part_2) / bootstraps
     reduced_beta_hat <- matrix(reduced_beta_hat,
                                nrow=n_features,
                                ncol=1)
@@ -103,7 +103,9 @@ HiLasso <- function(x, y,
     colnames(reduced_beta_hat) <- "Coefficients"
     if (verbose_output) {
         return(list(beta_hat = reduced_beta_hat,
-                    importance_measure = importance_measure))
+                    importance_measure = importance_measure,
+                    coef_part_1 = bootstrap_coef_matrix_part_1,
+                    coef_part_2 = bootstrap_coef_matrix_part_2))
     }
     return(reduced_beta_hat)
 }
