@@ -44,25 +44,26 @@ singleRandomBootstrap <- function(ii, X, y,
     beta_hat <- replicate(n_features, 0)
 
     if (method == "Regression") {
-        beta_hat[random_sample@features_sampled] <-
-            Lasso(scaled_random_sample@x,
-                  scaled_random_sample@y,
-                  alpha,
-                  nfold,
-                  lambda_1se)
+
+        regression_object <- Lasso(scaled_random_sample@x,
+                                   scaled_random_sample@y,
+                                   alpha,
+                                   nfold,
+                                   lambda_1se)
+
+        beta_hat[random_sample@features_sampled] <- regression_object@coef
     }
     else if (method == "Adaptive") {
         random_importance <- importance_measure[random_sample@features_sampled]
 
-        beta_hat[random_sample@features_sampled] <-
-            AdaptiveLasso(
-                scaled_random_sample@x,
-                scaled_random_sample@y,
-                alpha,
-                random_importance,
-                nfold,
-                lambda_1se
-            )
+        regression_object <- AdaptiveLasso(scaled_random_sample@x,
+                                           scaled_random_sample@y,
+                                           alpha,
+                                           random_importance,
+                                           nfold,
+                                           lambda_1se)
+
+        beta_hat[random_sample@features_sampled] <- regression_object@coef
     }
 
     beta_hat[random_sample@features_sampled] <-

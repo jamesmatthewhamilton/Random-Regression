@@ -8,7 +8,13 @@ Lasso <- function(x, y, alpha, nfold, lambda_1se = FALSE) {
                            standardize = FALSE, intercept = FALSE)
 
     beta_hat <- coef(coefficients, exact=TRUE)[-1]
-    return(beta_hat)
+    return(
+        new("Lasso",
+            coef=beta_hat,
+            cv_glmnet=cv,
+            glmnet=coefficients
+        )
+    )
 }
 
 ElasticNet <- function(x, y, nfold) { # Doctor Kim's Version
@@ -38,11 +44,18 @@ AdaptiveLasso <- function(x, y, alpha, importance_measure,
                            standardize = FALSE, intercept = FALSE,
                            penalty.factor = (1 / abs(importance_measure)))
     beta_hat <- coef(coefficients)[-1]
-    return(beta_hat)
+
+    return(
+        new("Lasso",
+            coef=beta_hat,
+            cv_glmnet=cv,
+            glmnet=coefficients
+        )
+    )
 }
 
 AdaptiveLasso2 <- function(x, y, alpha, nfold) {
-    
+
     cv <- cv.glmnet(x, y, type.measure = "mse",
                     nfold = nfold, alpha = 1)
     best_ridge_coef <- as.numeric(coef(cv, s = cv$lambda.min))[-1]
