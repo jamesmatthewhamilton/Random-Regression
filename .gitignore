@@ -1,9 +1,14 @@
+Documents
+
 .DS_Store
 *.Rhistory
 *.Rbuildignore
 *.Rproj.user
 *.Rcheck
-Tests
 \#*
 *~
 .Rproj.user
+
+data
+results
+log
