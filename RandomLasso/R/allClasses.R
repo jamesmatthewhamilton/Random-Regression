@@ -10,3 +10,12 @@ setClass("RandomSampling",
              feature_weight="ANY"
          )
 )
+
+setClass("Standardization",
+         representation(
+             method="character",
+             x="matrix",
+             y="numeric",
+             y_sd="numeric"
+         )
+)

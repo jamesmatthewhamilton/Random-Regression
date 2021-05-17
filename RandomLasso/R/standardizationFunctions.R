@@ -5,13 +5,15 @@ hiLassoStandardizationMethod <- function(X, y) {
 
     X_mean <- apply(X, 2, mean)
     X_scaled <- scale(X, X_mean, FALSE)
-    y_std_dev <- sqrt(apply(X_scaled ^ 2, 2, sum)) + 5e-324
-    X_scaled <- scale(X_scaled, FALSE, y_std_dev)
+    y_sd <- sqrt(apply(X_scaled ^ 2, 2, sum)) + 5e-324
+    X_scaled <- scale(X_scaled, FALSE, y_sd)
 
-    hiLassoStandardizationMethod <- list(X = X_scaled,
-                                         y = y_scaled,
-                                         y_std_dev = y_std_dev)
-
-    class(hiLassoStandardizationMethod) <- "hiLassoStandardizationMethod"
-    return(hiLassoStandardizationMethod)
+    return(
+        new("Standardization",
+            method="hiLassoStandardizationMethod",
+            x=X_scaled,
+            y=y_scaled,
+            y_sd=y_sd
+        )
+    )
 }

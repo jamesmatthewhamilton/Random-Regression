@@ -45,8 +45,8 @@ singleRandomBootstrap <- function(ii, X, y,
 
     if (method == "Regression") {
         beta_hat[random_sample@features_sampled] <-
-            Lasso(scaled_random_sample$X,
-                  scaled_random_sample$y,
+            Lasso(scaled_random_sample@x,
+                  scaled_random_sample@y,
                   alpha,
                   nfold,
                   lambda_1se)
@@ -56,8 +56,8 @@ singleRandomBootstrap <- function(ii, X, y,
 
         beta_hat[random_sample@features_sampled] <-
             AdaptiveLasso(
-                scaled_random_sample$X,
-                scaled_random_sample$y,
+                scaled_random_sample@x,
+                scaled_random_sample@y,
                 alpha,
                 random_importance,
                 nfold,
@@ -66,7 +66,7 @@ singleRandomBootstrap <- function(ii, X, y,
     }
 
     beta_hat[random_sample@features_sampled] <-
-        beta_hat[random_sample@features_sampled] / scaled_random_sample$y_std_dev
+        beta_hat[random_sample@features_sampled] / scaled_random_sample@y_sd
 
     return(beta_hat)
 }
