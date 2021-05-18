@@ -44,7 +44,6 @@ singleRandomBootstrap <- function(ii, X, y,
     beta_hat <- replicate(n_features, 0)
 
     if (method == "Regression") {
-
         regression_object <- Lasso(scaled_random_sample@x,
                                    scaled_random_sample@y,
                                    alpha,
@@ -66,8 +65,17 @@ singleRandomBootstrap <- function(ii, X, y,
         beta_hat[random_sample@features_sampled] <- regression_object@coef
     }
 
+
     beta_hat[random_sample@features_sampled] <-
         beta_hat[random_sample@features_sampled] / scaled_random_sample@y_sd
 
-    return(beta_hat)
+    return(
+        new("Bootstrap",
+            method = "Unknown",
+            bootstrap_matrix = beta_hat,
+            random_sampling = random_sample,
+            standardization = scaled_random_sample,
+            regression = regression_object
+        )
+    )
 }

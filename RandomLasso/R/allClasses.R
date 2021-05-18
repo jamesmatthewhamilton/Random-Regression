@@ -37,3 +37,20 @@ setClass("Lasso",
          ),
          contains="Regression"
 )
+
+setClass("Bootstrap",
+         representation(
+             method="character",
+             bootstrap_matrix="numeric",
+             random_sampling="RandomSampling",
+             standardization="Standardization",
+             regression="ANY"
+         )
+)
+
+setClass("RandomLasso",
+         representation(
+             method="character",
+             bootstraps="list"
+         )
+)
