@@ -72,18 +72,16 @@ HiLasso <- function(x, y,
                  method="Regression",
                  cores=cores,
                  verbose=verbose)
+
     if (!missing(seed)) args <- do.call(c, list(args, list(seed=seed)))
 
-    bootstrap_coef_matrix_part_1 <- do.call("multipleRandomBootstraps", args)
+    part1 <- new("RandomLassoPart",
+                 bootstraps = do.call("multipleRandomBootstraps", args))
 
-    part1 <- new("RandomLasso",
-                 method = "RL Part1",
-                 bootstraps = bootstrap_coef_matrix_part_1)
-
-    importance_measure <- colSums(abs(do.call(
-        rbind.data.frame,
-        lapply(part1@bootstraps, slot, 'bootstrap_matrix')
-    ))) + 5e-324
+    part1@bootstrap_matrix <-
+        do.call(rbind, lapply(part1@bootstraps, slot, 'sample_coef'))
+    part1@coef <- colSums(abs(part1@bootstrap_matrix)) + 5e-324
+    part1@coef <- setNames(part1@coef, colnames(x))
 
     if (verbose) {
         cat("\nPart 2 of 2:\n")
@@ -91,37 +89,27 @@ HiLasso <- function(x, y,
 
     args$start_time = Sys.time()
     args$alpha = alpha[2]
-    args$importance_measure = importance_measure
+    args$importance_measure = part1@coef
     args$lambda_1se = lambda_1se[2]
     args$method = "Adaptive"
 
-    bootstrap_coef_matrix_part_2 <- do.call("multipleRandomBootstraps", args)
+    part2 <- new("RandomLassoPart",
+                 bootstraps = do.call("multipleRandomBootstraps", args))
 
-    part2 <- new("RandomLasso",
-                 method = "RL Part2",
-                 bootstraps = bootstrap_coef_matrix_part_2)
+    part2@bootstrap_matrix <-
+        do.call(rbind, lapply(part2@bootstraps, slot, 'sample_coef'))
+    part2@coef <- colSums(part2@bootstrap_matrix) / bootstraps
+    part2@coef <- setNames(part2@coef, colnames(x))
 
     if (verbose) {
         cat("\n[Done]\n")
         print(Sys.time() - func_start_time)
     }
 
-    reduced_beta_hat <- colSums(do.call(
-        rbind.data.frame,
-        lapply(part2@bootstraps, slot, 'bootstrap_matrix')
-    )) / bootstraps
-
-    reduced_beta_hat <- matrix(reduced_beta_hat,
-                               nrow=n_features,
-                               ncol=1)
-
-    rownames(reduced_beta_hat) <- colnames(x)
-    colnames(reduced_beta_hat) <- "Coefficients"
-    #if (verbose_output) {
-    #    return(list(beta_hat = reduced_beta_hat,
-    #                importance_measure = importance_measure,
-    #                coef_part_1 = bootstrap_coef_matrix_part_1,
-    #                coef_part_2 = bootstrap_coef_matrix_part_2))
-    #}
-    return(reduced_beta_hat)
+    return(new(
+        "RandomLasso",
+        coef = part2@coef,  # Final coefficients.
+        part1 = part1,
+        part2 = part2
+    ))
 }

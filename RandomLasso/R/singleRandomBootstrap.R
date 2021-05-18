@@ -72,7 +72,7 @@ singleRandomBootstrap <- function(ii, X, y,
     return(
         new("Bootstrap",
             method = "Unknown",
-            bootstrap_matrix = beta_hat,
+            sample_coef = beta_hat,
             random_sampling = random_sample,
             standardization = scaled_random_sample,
             regression = regression_object

@@ -18,9 +18,16 @@ test_that("Dataframe row-4 column-2 should equal 4.42590435433364", {
 results <- sapply(sims, function(sims) {
     load(paste0("../../data/simulated/", sims, "_1.RData"))
     cat(paste0("Running Hi-Lasso on Simulated Dataset ", sims, "\n"))
-    coef <- HiLasso(x=x, y=y, alpha = c(0.5, 1), cores=TRUE, verbose=FALSE)
+
+    RNGkind("L'Ecuyer-CMRG") # Forces set.seed to work in for mcmapply.
+    set.seed(seed = 1)
+
+    colnames(x) <- sprintf("Gene%s", 1:ncol(x))
+    rl_fit <- HiLasso(x=x, y=y, alpha = c(0.5, 1), cores=FALSE, verbose=FALSE, seed=1)
+    coef <- rl_fit@coef
     rmse <- findRMSE(beta_hat=coef, x_val=x_val, y_val=y_val)
     f1 <- findF1(beta_hat=coef, ground_truth=beta0)
+    print(paste0("Sample from this seed: ", sample.int(100, 1)))
     return(c(rmse, f1))
 })
 

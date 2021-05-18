@@ -41,16 +41,29 @@ setClass("Lasso",
 setClass("Bootstrap",
          representation(
              method="character",
-             bootstrap_matrix="numeric",
+             sample_coef="numeric",
              random_sampling="RandomSampling",
              standardization="Standardization",
              regression="ANY"
          )
 )
 
+setClass("RandomLassoPart",
+         representation(
+             coef="numeric",
+             bootstrap_matrix="matrix",
+             bootstraps="list"
+         ),
+         prototype = list(
+             coef = NA_real_,
+             bootstrap_matrix=matrix()
+         )
+)
+
 setClass("RandomLasso",
          representation(
-             method="character",
-             bootstraps="list"
+             coef="numeric",
+             part1="RandomLassoPart",
+             part2="RandomLassoPart"
          )
 )
